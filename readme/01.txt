@@ -1,0 +1,97 @@
+failure over 容灾
+fault over 容错
+
+大数据的四个v特征
+1.volume体量大
+2.variety样式多
+3.velocity速度快
+4.valueless价值密度低
+
+hadoop四个模块
+1.common
+2.hdfs
+3.hadoop yarn
+4.hadoop mapreaduce(mr)
+hadoop权威指南
+
+安装hadoop
+1.安装jdk
+    a)下载jdk-8u65-linux-x64.tar
+    b)tar开
+       su centos ; cd ~
+       mkdir downloads
+       cp /mnt/hdfs/downloads/bigdata/jdk.tar.gz ~/downloads
+       tar -zxvf jdk.tar.gz
+    c)创建/soft文件夹
+       sudo mkdir /soft
+       sudo chown centos:centos /soft
+    d)移动tar开的文件到/soft下
+       mv ~/downloads/jdk-1.8.0_65 /soft/
+    e)创建符号连接
+       ln -s /soft/jdk-1.8.0_65 /soft/jdk
+    f)验证jdk安装是否成功
+        cd /soft/jdk/bin
+        ./java -version
+centos环境变量
+    1.编辑/etc/profile
+       $>sudo nano /etc/profile
+       ...
+       export JAVA_HOME=/soft/jdk
+       export PATH=$PATH:$JAVA_HOME/bin
+    2.使环境变量即可生效
+       $>source /etc/profile
+    3.进入任意目录下,测试是否ok
+       $>cd ~
+       $>java -version
+
+安装hadoop
+---------------------------
+    1.安装hadoop
+    a)下载hadoop-2.7.3.tar.gz
+    b)tar开
+       su centos ; cd ~
+       cp /mnt/hdfs/downloads/bigdata/jdk.tar.gz ~/downloads
+       tar -zxvf hadoop.2.7.3.tar.gz
+    c)无
+    d)移动tar开的文件到/soft下
+       mv ~/downloads/hadoop-2.7.3 /soft/
+    e)创建符号连接
+       ln -s /soft/hadoop-2.7.3 /soft/hadoop
+    f)验证jdk安装是否成功
+        cd /soft/hadoop/bin
+        ./hadoop version
+    2.配置hadoop环境变量
+        sudo nano /etc/profile
+        export HADOOP_HOME=/soft/hadoop
+        export PATH=$PATH:$JAVA_HOME/bin
+        export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+        使环境变量即可生效
+        $>source /etc/profile
+        进入任意目录下,测试是否ok
+        $>cd ~
+        $>hadoop version
+配置hadoop
+---------------------
+    1.standlone(local)
+        nothing
+        不需要启用单独的hadoop进程
+    2.Pseudodistributed mode
+        伪分布式:
+        a)进入$(HADOOP_HOME)/etc/hadoop目录
+        b)编辑core-site.xml
+        c)编辑hdfs-site.xml
+        d)编辑mapred-site.xml
+            注意:cp mapred-site.xml.template mapred-site.xml
+        e)编辑yarn-site.xml
+        f)配置SSH
+            1)检察是否安装了ssh相关软件包(openssh-server + openssh-clients + openssh)
+                $>yum list installed | grep ssh
+            2)检察是否启动了sshd进程
+                $>ps -Af | grep sshd
+            3)在client侧生成公私密钥对
+                $>ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
+            4)生成~/.ssh文件夹，里面有id_rsa(私钥)+id_rsa.pub(公钥)
+            5)追加公钥到~/.ssh/authorized_keys文件名中 (文件名,位置固定)
+                $>cd ~/.ssh
+                $>cat id_rsa.pub >> authorized_keys
+            6)修改authorized_keys的权限为644

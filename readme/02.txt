@@ -1,0 +1,107 @@
+hadoop
+----------------
+    1.独立模式(standalone|local)
+        nothing!
+        本地文件系统。
+        不需要启用单独进程。
+    2.pesudo(伪分布式模式)
+        等同于完全分布式,只有一个节点。
+        SSH:       //(socket)
+                   // public + private
+                   // server : sshd ps -Af | grep sshd
+                   //client : ssh
+                   // ssh-keygen:生成公私秘钥
+                   // authorized_keys 需要使用644
+                   // ssh localhost yes
+        (配置文件)
+            core-site.xml  //fs.defaultFS=hdfs://localhost/
+            hdfs-site.xml  //replication=1
+            mapred-site.xml
+            yarn-site.xml
+
+    3.full distrubuted(完全分布式)
+
+让命令行提示符显示完整路径
+    1.编辑profile文件，添加环境变量
+    [/etc/profile]
+    export PS1='[\u@\h `pwd`]'
+
+配置hadoop，使用符号连接的方式，让三种配置形态共存,
+--------------------------------------------------
+    1.创建三个配置目录,内容等同于hadoop目录
+        $(hadoop_home)/etc/local
+        $(hadoop_home)/etc/pesudo
+        $(hadoop_home)/etc/full
+    2.创建符号连接
+        $>ln -s 
+    3.对hdfs进行格式化
+        $>hadoop namenode -format
+    4.修改hadoop配置文件，手动指定JAVA_HOME环境变量
+        [#{hadoop_home}/etc/hadoop/hadoop_env.sh]
+        ...
+        export JAVA_HOME=/soft/jdk
+        ...
+    5.启动hadoop的所有进程
+        $>start-all.sh 
+    6.启动完成后，出现以下进程
+        $>jps 查看
+            15856 ResourceManager
+            15956 NodeManager
+            16469 Jps
+            15334 NameNode
+            15703 SecondaryNameNode
+            15435 DataNode
+    7.查看hdfs文件系统
+        $>hdfs dfs -ls
+        15856 ResourceManager
+        15956 NodeManager
+        16469 Jps
+        15334 NameNode
+        15703 SecondaryNameNode
+        15435 DataNode
+    8.创建目录
+        $>hdfs dfs -mkdir -p /user/liuqi15/hadoop
+    9.通过webui查看hadoop的文件系统
+        http://localhost:50070/
+
+hadoop的端口
+---------------------
+    50070    //namenode http port
+    50075    //datanode http port
+    50090    /2namnode http port
+
+    8020     //namenode rpc port
+    50010    //datanode rpc port
+hadoop四大模块
+    common
+    hdfs   //namenode + datanode +secondarynamenode
+    mapred
+    yarn   // resourcemanager + nodemanager
+启动脚本
+--------------------
+    1.start-all.sh     // 启动所有进程
+    2.stop-all.sh    // 停止所有进程
+    3.start-dfs.sh
+    4.start-yarn.sh
+    [hdfs] start-dfs.hs stop-dfs.sh
+        NN
+        DN
+        2NN
+    [yarn] start-yarn.sh stop-yarn.sh
+        RM
+        NM
+
+修改主机名
+------------------
+    1./etc/hostname
+        s201
+    2./etc/hosts
+        127.0.0.1 localhost
+        192.168.231.201 s201
+        192.168.231.202 s202
+        192.168.231.203 s203
+        192.168.231.204 s204
+
+完全分布式
+-------------------
+    1.修改主机名

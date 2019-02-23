@@ -1,0 +1,230 @@
+ssh权限问题
+--------------------
+    1.~/.ssh/authorized_keys
+        644
+    2.~/.ssh
+        700
+    3.root
+
+配置SSH
+-------------------
+    生成秘钥对$>ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
+    添加认证文件$>cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
+    权限设置,文件和文件夹权限除了自己之外,别人不可写。$>chomd 700 ~/.ssh $>chomd 644 ~/.ssh/authorized_keys
+
+scp
+-------------------
+    远程复制。
+
+rsync
+--------------------
+    远程同步，支持符号链接
+    rsync -lr xxx xxx
+
+完全分布式
+-------------------
+    1.配置文件
+    [core-site.xml]
+    fs.defaultFS=hdfs://s201:8020/
+
+    [hdfs-site.xml]
+    replication=1    // 伪分布
+    replication-3    // 完全分布
+
+    [mapred-site.xml]
+    mapreduce.framework.name=yarn
+
+    [yarn-site.xml]
+    rm.name=s201
+
+    [slaves]
+    s202
+    s203
+    s204
+    2.分发文件
+        a)ssh
+        openssh-server    // sshd
+        openssh-clients    // ssh
+        openssh    // ssh-keygen
+        b)scp/rsync
+    3.格式化文件系统
+        $>hadoop namenode -format
+    4.启动hadoop所有进程
+        // start-dfs.sh + start-yarn.sh
+        $>start-all.sh
+    5.xcall.sh jps
+        /usr/local/bin/jps
+        /usr/local/bin/java
+    6.查看jps进程
+        $>xcall.sh jps
+    7.关闭centos防火墙
+        $>sudo service firewalld stop    // <=6.5 停止 start/stop/status/restart
+        $>sudo systemctl stop firewalld    // <=7.0 停止 start/stop/status/restart
+        $>sudo systemctl disable fireewalld    // 关闭
+        $>sudo systemctl enable fireewalld    // 
+    8.最终通过webui
+        http://s201:50070/
+
+符号连接
+--------------------
+    1.修改符号连接的owner
+        $>chown -h centos:centos xxxx    // -h:针对连接本身,而不是所指文件
+    2.修改符号连接
+        $>ln -sfT index.html index    // 覆盖原有连接
+
+hadoop模块
+-------------------
+    common    //
+    hdfs    //
+    mapreduce    //
+    yarn    //
+
+进程
+-------------------
+    [hdfs]start-dfs.sh
+    NameNode    NN
+    DataNode    DN
+    SecondaryNameNode    2NN
+
+    [yarn]start-yarn.sh
+    ResourceManager    RM
+    NodeManager    NM
+
+脚本分析
+--------------------
+    sbin/start-all.sh
+    ----------------
+        libexec/hadoop-config.sh
+        start-dfs.sh
+        start-yarn.sh
+    sbin/start-dfs.sh
+    ----------------
+        libexec/hadoop-config.sh
+        hadoop-daemons.sh --config ... --hostname ... start namenode ...
+        hadoop-daemons.sh --config ... --hostname ... start datanode ...
+        hadoop-daemons.sh --config ... --hostname ... start secondarynamenode ...
+        hadoop-daemons.sh --config ... --hostname ... start zkfc ...
+    sbin/start-yarn.sh
+    ---------------
+        libexec/yarn-config.sh
+        bin/yarn-daemon.sh start resourcemanager
+        bin/yarn-daemons.sh start nodemanager
+
+    sbin/hadoop-daemons.sh
+    ---------------
+        libexec/hadoop-config.sh
+        slaves.sh
+        hadoop-daemon.sh
+
+    sbin/hadoop-daemon.sh
+    ---------------
+        libexec/hadoop-config.sh
+        bin/hdfs ...
+    sbin/yarn-daemon.sh
+        libexec/hadoop-config.sh
+        bin/yarn
+
+bin/hadoop
+----------------------
+    hadoop version    // 版本
+    hadoop fs    // 文件系统客户端
+    hadoop jar
+
+hdfs常用命令
+----------------------
+    $>hdfs dfs -mkdir /user/liuqi15/hadoop
+    $>hdfs dfs -ls -R /user/liuqi15/hadoop
+    $>hdfs dfs -lsr /user/liuqi15/hadoop
+    $>hdfs dfs -put index.html /user/liuqi15/hadoop
+    $>hdfs dfs -get /user/liuqi15/hadoop/index.html a.html
+    $>hdfs dfs -rm -r -f /user/liuqi15/hadoop
+
+no route
+----------------------
+    关闭防火墙
+    $>su root
+    $>xcall.sh "service firewalld stop"
+    $>xcall.sh "systemctl disable firewalld"
+
+hdfs
+----------------------
+    hdfs dfs -help
+    hdfs dfs -appendToFile localsrci dst  
+    500G
+    1024G = 2T/4T
+    切割。
+
+    寻址时间:10ms左右
+    磁盘速率:100M/s
+
+    64M
+    128M    // 让寻址时间占用读取时间的1%
+
+    1ms
+    1/100
+
+HA
+----------------------
+    high avaliability,高可用行，通常用几个9衡量
+    99.999%
+
+SFOF
+----------------------
+    single point of failure,单点故障
+
+secondarynamenode
+---------------------
+
+
+找到所有的配置文件
+---------------------
+    1.tar开hadoop-2.7.3.tar.gz
+
+本地模式
+---------------------
+    [core-site.xml]
+    fs.defaultFS=file:///    //默认值
+
+配置hadoop临时目录
+---------------------
+    1.配置[core-site.xml]文件
+    <configuration>
+        <property>
+            <name>fs.defaultFS</name>
+            <value>hdfs://localhost/</value>
+        </property>
+        <property>
+            <name>hadoop.tmp.dir</name>
+            <value>/home/liuqi15/hadoop</value>
+        </property>
+    </configuration>
+    ...
+    hadoop.tmp.dir=/home/centos/hadoop
+    //以下属性均有hadoop.tmp.dir决定
+    [core-site.xml]
+    hadoop.tmp.dir=/home/centos/hadoop
+    dfs.namenode.name.dir=file://${hadoop.tmp.dir}/dfs/name
+    dfs.namenode.data.dir=file://${hadoop.tmp.dir}/dfs/data
+    dfs.namenode.checkpoint.dir=file://${hadoop.tmp.dir}/dfs/namesecondary
+    2.分发core-site.xml文件
+        $>xsync core-site.xml
+    3.格式化文件系统,只对namenode的本地目录进行初始化
+        $>hadoop namenode -format    // hdfs namenode -format
+    4.启动hadoop
+        $>start-dfs.sh
+
+使用xcall.sh在所有节点上创建jps符号连接，指向/soft/jdk/bin/jps
+----------------------------------------------------------------
+    1.切换用户
+        $>su root
+    2.创建符号连接
+        $>xcall.sh "ln -sfT /soft/jdk/bin/jps /usr/local/bin/jps"
+    3.修改jps符号连接的owner
+        $>xcall.sh "chown -h centos:centos /usr/local/bin/jps"
+    4.查看所有主机上的java进程
+        $>xcall.sh jps
+
+使用hadoop客户端api访问hdfs
+--------------------------------
+    1.创建java项目
+    2.导入hadoop类库

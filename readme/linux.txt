@@ -1,0 +1,60 @@
+卸载VMware
+-----------------
+    控制面板-->vmware->卸载
+
+安装VMware
+-----------------
+    1.WMare-workstation-full-11.1.2-windows-x86_64.ext
+        以管理员身份运行
+    2.自定义安装
+        指定安装目录(没有空格,没有中文)
+    3.
+
+在vmware中安装centos客户机
+-----------------
+    1.wmare文件菜单-->新建虚拟机->典型安装
+    2.安装程序光盘镜像文件,指定CentOS-7-DVD-1503-01-x86_64.iso
+    3.个性化linux
+        全名:centos
+        用户名:centos
+        密码:123456
+        确认密码:123456
+
+[centos]
+逻辑结构
+/    // 文件系统的根
+/bin    // 最初的命令(祖先),binary文件,可执行文件
+/sbin    // super bianry（重要性高）
+/usr/bin    // 厂商相关的命令,ubuntu
+/usr/sbin    // 厂商相关的命令,ubuntu
+/usr/local/bin    // 用户级别
+/usr/local/sbin
+
+[客户端与宿主机]
+1.桥接
+    桥接(client完全等价于一台物理主机)
+
+2.NAT
+    a.Net Address transform,网络地址转换
+    b.客户机能访问外网,可以访问局域网内的其他物理主机
+    c.其他的局域网内物理主机不能访问客户机
+
+3.only host
+    a.和NAT非常像
+    b.不能访问外网
+
+4.查看client机的网络连接模式
+    a.右键选择Centos客户机
+    b.点击"设置"
+    oc.网络适配器
+5.查看DHCP的分配网段
+    a.vmware-->编辑-->虚拟网络编辑器
+    b.选中v8条目
+    c.下方显示的v8详细信息
+    d.点击DHCP的设置
+    e.查看分配网段
+
+Pttty(发音:partty)
+1.运行putty.exe
+2.输入ip地址
+3.点击open

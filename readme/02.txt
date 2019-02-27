@@ -63,6 +63,20 @@ hadoop
         $>hdfs dfs -mkdir -p /user/liuqi15/hadoop
     9.通过webui查看hadoop的文件系统
         http://localhost:50070/
+    10.停止hadoop所有进程
+        $>stop-all.sh
+    11.centos防火墙操作
+        [centos 6.5之前版本]
+        $>sudo service firewalld stop    // 停止服务
+        $>sudo service firewalld start    // 启动服务
+        $>sudo service firewalld status    // 查看状态
+        
+        [centos7]
+        $>sudo systemctl enable firewalld.service    // 启用
+        $>sudo systemctl disable firewalld.service    // 禁用
+        $>sudo systemctl start direwalld.service    // 启动
+        $>sudo systemctl stop firewalld.service    // 停止
+        $>sudo systemctl status firewalld.service    // 查看状态
 
 hadoop的端口
 ---------------------
@@ -104,4 +118,16 @@ hadoop四大模块
 
 完全分布式
 -------------------
-    1.修改主机名
+    1.克隆3台client(centos)
+        右键centos-7-->管理->克隆->...->完整克隆
+    2.启动client
+    3.修改hostname和ip地址文件
+        [/etc/hostname]
+        s202
+        [/etc/sysconfig/network-scripts/ifcfg-ethxxx]
+        ...
+        IPADDR=...
+    4.重启网络服务
+        $>sudo service network restart
+    5.修改/etc/resolv.conf文件
+

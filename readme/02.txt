@@ -121,13 +121,98 @@ hadoop四大模块
     1.克隆3台client(centos)
         右键centos-7-->管理->克隆->...->完整克隆
     2.启动client
-    3.修改hostname和ip地址文件
+    3.启用客户机共享文件夹
+    4.修改hostname和ip地址文件
         [/etc/hostname]
         s202
         [/etc/sysconfig/network-scripts/ifcfg-ethxxx]
         ...
         IPADDR=...
-    4.重启网络服务
+    5.重启网络服务
         $>sudo service network restart
-    5.修改/etc/resolv.conf文件
+    6.修改/etc/resolv.conf文件
+        nameserver 192.168.231.2
+    7.重复3~6过程
 
+准备完全分布式主机的ssh
+------------------
+    1.删除所有主机的/home/centos/.ssh/*
+    2.在s201主机上生成密钥对
+        $>ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
+    3.将s201的公钥文件id_rsa.pub远程复制到s202~s204主机上,
+      并放置/home/centos/.ssh/authorized_keys
+      $>scp id_rsa.pub centos@s202:/home/centos/.ssh/authorized_keys
+      $>scp id_rsa.pub centos@s203:/home/centos/.ssh/authorized_keys
+    4.配置完全分布式(${hadoop_home}/etc/hadoop/})
+      [core-site.xml]
+      fs.defaultFS=hdfs://s201/
+      [hdfs-site.xml]
+      <?xml version="1.0" encoding="UTF-8"?>
+      <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+      <configuration>
+          <property>
+              <name>dfs.replication</name>
+              <value>2</value>
+          </property>
+      </configuration>
+      [yarn-site.xml]
+      <?xml version="1.0"?>
+      <!-- Site specific YARN configuration properties -->
+          <property>
+              <name>yarn.resourcemanager.hostname</name>
+              <value>s201</value>
+          </property>
+          <property>
+              <name>yarn.nodemanager.aux-services</name>
+              <value>mapreduce_shuffle</value>
+          </property>
+      </configuration>
+    [slave]
+        s202
+        s203
+        s204
+    [hadoop-env.sh]
+        export JAVA_HOME=/soft/jdk
+    5.分发配置
+        $>scp -r full centos@s201:/soft/hadoop/etc/
+        $>scp -r full centos@s202:/soft/hadoop/etc/
+    6.删除符号连接
+        $>cd /soft/hadoop/etc/
+        $>rm hadoop
+        $>ssh s202 rm /soft/hadoop/etc/hadoop
+        $>ssh s203 rm /soft/hadoop/etc/hadoop
+    7.创建符号连接
+        $>cd /soft/hadoop/etc/
+        $>ln -s full hadoop
+        $>ssh s202 ln -s /soft/hadoop/etc/full /soft/hadoop/etc/hadoop
+        $>ssh s203 ln -s /soft/hadoop/etc/full /soft/hadoop/etc/hadoop
+    8.删除临时目录文件
+        $>cd /tmp
+        $>rm -rf hadoop-centos
+        $>ssh s202 rm -rf /tmp/hadoop-centos
+        $>ssh s203 rm -rf /tmp/hadoop-centos
+    9.删除hadoop日志
+        $>cd /soft/hadoop/logs
+        $>rm -rf *
+        $>ssh s202 rm -rf /soft/hadoop/logs/*
+        $>ssh s203 rm -rf /soft/hadoop/logs/*
+    10.格式化文件系统
+        hadoop namenode -format
+
+rsync
+-----------------------
+    rsync -lr src desc
+    四个机器均安装rsunc命令
+    远程同步
+    $>sudo yum install rsync
+
+将root用户实现无秘登陆
+-----------------------
+    1.同
+
+编写脚本
+------------------------
+    1.xcall.sh
+    
+    2.xsync.sh
+        rsync -lr /home/etc/a.txt    centos@s202:/home/etc

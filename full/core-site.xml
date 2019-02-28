@@ -19,6 +19,6 @@
 <configuration>
     <property>
         <name>fs.defaultFS</name>
-        <value>hdfs://localhost/</value>
+        <value>hdfs://s201/</value>
     </property>
 </configuration>

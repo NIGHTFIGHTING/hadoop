@@ -224,7 +224,14 @@ secondarynamenode
     4.查看所有主机上的java进程
         $>xcall.sh jps
 
+在centos中安装eclipse
+--------------------------------
+    1.下载eclipse
+
 使用hadoop客户端api访问hdfs
 --------------------------------
     1.创建java项目
     2.导入hadoop类库
+    3.
+    4.
+    5.

@@ -1,0 +1,71 @@
+
+JVM 
+----------------------
+    Java virtual machine,Java虚拟机(sandbox)
+
+JDK
+----------------------
+    javaRuntime environment,java运行时环境
+    JVM + 核心类库
+
+卸载jdk
+-----------------------
+    控制面板-->jdk*-->卸载
+
+安装jdk
+-----------------------
+    1.没有空格,没有中文
+    2.右键jdk-xxx.exe->以管理员身份运行
+    3.选择安装目录(没有空格,没有中文)
+    4.安装是否成功
+        a)cmd jdk安装目录\bin
+        b)java -version    // 查看java的版本
+            输出java info    //
+    5.
+
+kilo    : 1000
+million : 1000 * 1000
+billion : 1000 * 1000 * 1000
+
+环境变量
+-----------------------
+    1.计算机->属性->高级系统设置->环境变量
+    2.查看环境变量
+        echo %path%
+        set     // 查看所有环境变量
+        set path    // 等价 echo %path%
+        set mypath=%path%;d:\
+    3.配置java_home
+        java_home:\myprograms\jdk1.8.0_65
+        path=%java_home%\bin;...
+
+helloworld
+-----------------------
+       javac(compile)           java
+*.java --------------> *.class --------> 执行
+
+编写java程序
+-----------------------
+    1.编写java源文件
+        [HelloWorld.java]
+        class HelloWorld
+        {
+            public static void main(String[] args)
+            {
+                System.out.println("hello world");
+            }
+        }
+    2.编译java源文件
+        cmd
+        cd d:\java
+        javac
+    3.生成HelloWorld.class文件
+    4.运行java程序
+        java HelloWorld
+        java 类名
+    5.考察问题
+        a)源文件可以是txt扩展名吗?
+        b)类名和源文件能否一致?
+
+文件扩展名问题
+------------------

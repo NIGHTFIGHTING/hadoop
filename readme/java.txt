@@ -80,7 +80,7 @@ classpath
 ------------------
     java搜索类的顺序
     javac -classpath .;
-    javac -classpath ,;
+    javac -classpath .;
 
 jar
 war

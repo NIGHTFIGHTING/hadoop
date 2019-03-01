@@ -64,8 +64,27 @@ helloworld
         java HelloWorld
         java 类名
     5.考察问题
-        a)源文件可以是txt扩展名吗?
+        a)源文件可以是txt扩展名吗?    扩展名必须是java
         b)类名和源文件能否一致?
 
-文件扩展名问题
+
+文件扩展名问题 
 ------------------
+    在windows窗口中-->alt->显示菜单->工具->文件夹选项->隐藏扩展名
+ 
+path
+------------------
+    windows程序文件的目录
+ 
+classpath
+------------------
+    java搜索类的顺序
+    javac -classpath .;
+    javac -classpath ,;
+
+jar
+war
+ear
+har
+tar
+archive : 归档

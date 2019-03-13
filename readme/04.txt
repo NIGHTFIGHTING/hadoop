@@ -1,0 +1,30 @@
+hadoop
+---------------------
+    1.API
+        Configuration    // 配置类,fs.defaultFS(file://)
+    2.核心配置文件
+        core-site.xml    // 文件系统 + 本地临时目录 hadoop.tmp.dir
+        hdfs-site.xml    // relication = 3
+        mapred-site.xml    // yarn 
+        yarn-site.xml    // rm
+    3.blocksize
+        128m
+        寻址时间    ~= 10ms
+        磁盘的io速率    = 100M/s
+        让寻址事件是读取时间的1%
+    4.centos
+    5.hadoop
+        hadoop/share/hadoop/common|hdfs|yarn|mapred|.../lib/jar
+
+yum
+---------------------
+    管理依赖
+
+maven
+----------------------
+    apache maven
+    1.apache-maven-3.3.9-bin.tar.gz
+    2.
+    3.
+
+        

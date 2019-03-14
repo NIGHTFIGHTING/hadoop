@@ -23,8 +23,11 @@ yum
 maven
 ----------------------
     apache maven
-    1.apache-maven-3.3.9-bin.tar.gz
-    2.
-    3.
+    1.下载maven软件
+        linux    // apache-maven-3.3.9-bin.tar.gz
+        windows    // 
+    2.安装
+        解压即可
+    3.配置环境变量
 
         

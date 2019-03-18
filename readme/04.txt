@@ -29,5 +29,55 @@ maven
     2.安装
         解压即可
     3.配置环境变量
+        M2_HOME=安装目录
+        PATH=%M2_HOME%/bin;...
 
+修改软件仓库
+-----------------------
+    1.conf/settings.xml
+    2.修改本地库路径
+        [默认位置]
+        ~/.m2/repository    // windows C:\Users\Administrator
+                            // linux :/home/centos/m2
+        [conf.settings.xml]
+            ...
+            <localRepository>/path/to/local/repo</localRepository>
+            ...
         
+
+体验maven
+----------------------
+    0.查看maven的帮助(mvn help:system)
+        cmd>cd bin
+        cmd>mvn
+    1.创建项目
+        编写pom.xml(project object model)文件
+        <project>
+            <modelVersion>4.0.0.</modelVersion>
+            <!-- groupid映射到文件夹结构,.解析成路径 -->
+            <groupId>org.appache.hadoop</groupId>
+            
+            <!-- 工件id,对应一个文件夹 -->
+            <aritfactId>org.apache.hadoop</artifacrId>
+            
+            <!-- 工件的版本,对应一个文件夹 -->
+            <version>2.7.3</version>
+        </project>
+
+        <project>
+            <modelVersion>4.0.0.</modelVersion>
+            <groupId>liuqi15</groupId>
+            <version>1.0.0</version>
+        </project>
+    2.创建文件夹
+        src/main/java    // maven默认的源代码目录
+    3.创建java类
+        liuqi15/HelloWorld.java
+        package liuqi15.helloworld;
+        public class HelloWorld {
+            public static void main(String[] args) {
+                System.out.println("hello world");
+            }
+        }
+    4.编译java源码
+        cmd

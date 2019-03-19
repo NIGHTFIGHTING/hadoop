@@ -72,7 +72,7 @@ maven
     2.创建文件夹
         src/main/java    // maven默认的源代码目录
     3.创建java类
-        liuqi15/HelloWorld.java
+        liuqi15/helloworld/HelloWorld.java
         package liuqi15.helloworld;
         public class HelloWorld {
             public static void main(String[] args) {
@@ -81,3 +81,7 @@ maven
         }
     4.编译java源码
         cmd
+        tree /F
+        mvn clean compile
+        mvn clean package
+        java -cp helloworld-1.0.0.jar liuqi15.helloworld.HelloWorld

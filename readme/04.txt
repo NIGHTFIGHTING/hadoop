@@ -83,5 +83,17 @@ maven
         cmd
         tree /F
         mvn clean compile
+    5.打包
         mvn clean package
         java -cp helloworld-1.0.0.jar liuqi15.helloworld.HelloWorld
+
+
+搭建maven私服
+-----------------------------
+    1.下载maven web程序(war)
+        nexus.war
+    2.部署war文件
+        复制nexus.war到${tomcat_home}/webapps/即可
+    3.启动tomcat
+        cmd
+        Tomcat 9.0\bin\startup.bat

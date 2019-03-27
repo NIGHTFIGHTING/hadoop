@@ -1,0 +1,16 @@
+OOP
+-------------------
+    oriented object program
+    面向对象编程
+
+OOA
+-------------------
+    oriented object analyze
+
+OOD
+-------------------
+    oriented object design
+
+c
+-------------------
+    面向过程的语言

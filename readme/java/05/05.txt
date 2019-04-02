@@ -40,8 +40,10 @@ Object:切实存在的个体,实例。
 
 类的成员
 ------------------
-    成员变量
-    成员函数
+    成员变量:对象的成员变量在heap区
+    成员函数:
+
+局部变量在stack中，没有默认的初始化值
 
 c == null ?
 null
@@ -67,3 +69,32 @@ java没有指针
 --------------------
     java没有显示的指针操作。
 
+class ...{ 
+    // 成员变量
+    String name;
+    int age;
+    // 成员函数
+    void run() {
+    }
+}
+
+p.name
+p.age
+
+class Dog {
+    String name ;
+    String color ;
+    void watch() {
+        System.out.println("有人来了,汪汪汪...");
+    }
+    void catchMouse() {
+        System.out.println("抓了只老鼠,");
+    }
+}
+
+匿名
+------------------
+    Dog d1 = new Dog();
+    new Dog();
+    1.只能调用1次
+    2.

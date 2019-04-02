@@ -1,0 +1,69 @@
+OOP
+-------------------
+    oriented object program
+    面向对象编程
+    class
+    面向过程
+
+OOP特征
+-------------------
+    继承
+    封装
+    多态
+
+OOA
+-------------------
+    oriented object analyze
+
+OOD
+-------------------
+    oriented object design
+
+c
+-------------------
+    面向过程的语言,
+    出发点非常低.
+
+线性思维
+-------------------
+
+main() {
+    ...
+}
+
+// 图纸
+class {
+}
+
+class:对现实事物软件抽象。
+Object:切实存在的个体,实例。
+
+类的成员
+------------------
+    成员变量
+    成员函数
+
+c == null ?
+null
+new
+
+StackOverFlow
+栈stack method fram:方法帧
+push|pop
+heap
+
+stack
+------------------
+    runtime
+
+Person p = new Person();
+    1.定义p
+    2.创建对象(heap,产生地址)
+    3.赋值
+
+p = &p;
+NullPointerException.
+java没有指针
+--------------------
+    java没有显示的指针操作。
+

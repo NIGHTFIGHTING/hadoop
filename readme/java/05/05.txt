@@ -107,3 +107,12 @@ class Dog {
 
 private:私有
 public:共有
+
+
+java的栈空间设置
+-------------------
+    java -X    // 输出java的非标准选项
+    java -Xss<size> xxx    // 设置stack大小
+    java -Xss512k ...    // stack默认大小是1m
+    java -Xss256K ...    ..2561k
+    java -Xss

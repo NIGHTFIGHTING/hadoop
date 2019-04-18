@@ -12,7 +12,12 @@ class HeapStackDemo1 {
         testStack(j);
     }
     public static void testHeap() {
-        byte[] arr = new byte[1024 * 1024 * 512];
+        // byte[] arr = new byte[1024 * 1024 * 512];
+        // byte[] arr = new byte[1024 * 1024];
+        int size = 1024 * 1024 * 1024;
+        byte[][] arr = new byte[4][];
+        arr[0] = new byte[size];
+        arr[1] = new byte[size];
         System.out.println(arr);
     }
 }

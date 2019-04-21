@@ -94,6 +94,41 @@ maven
         nexus.war
     2.部署war文件
         复制nexus.war到${tomcat_home}/webapps/即可
-    3.启动tomcat
+    3.配置私服的仓库地址
+        ${tomcat_home}\webapps\nexus\WEB-INF\classes\nexus.properties
+        // nexus-work=${user.home}/sonatype-work/nexus
+        nexus-work=h:/maven-repo/nexus
+	runtime=${bundleBasedir}
+	nexus-app=${runtime}
+    4.启动tomcat
         cmd
         Tomcat 9.0\bin\startup.bat
+    5.通过浏览器访问nexus
+        http://localhost:8080/nexus/
+    6.复制文件到相应目录下
+
+配置maven的settings文件,指定私服的地址
+--------------------------------------
+    1.编辑settins.xml文件
+        [${m2_home/conf/settings/xml}]
+        <localRepository>xxx</localRepository>
+        ~/.m2/settings.xml指定用户
+
+maven常用命令
+------------------
+    cmd>mvn clean // 清除targe目录
+    cmd>mvn clean compile // 清除并编译
+    cmd>mvn clean package // 清除并打包
+
+使用archetype生成项目骨架
+--------------------------
+    cmd>mvn archetype:generate
+    cmd>mvn archetype:generate -DarchetypeCatalog=internal
+
+eclipse中配置maven
+--------------------------
+    1.eclipse -> 首选项 -> Maven -> User Settings
+        Global Settings : C:\myprograms\apache-maven-3.6.0\conf\setttings.xml
+        User Settings : C:\myprograms\apache-maven-3.6.0\conf\settings.xml 
+        自动解析本地仓库目录 : C:\Users\liuqi15\.m2\repository
+    2.OK

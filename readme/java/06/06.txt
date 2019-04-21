@@ -1,0 +1,27 @@
+继承
+----------------
+    1.抽象共性
+    2.多个类是子类,抽象的类是父类(超类)
+    3.子类可以访问父类的非private成员
+    4.通过extends继承.
+    5.类只支持单重继承 + 多层继承
+
+练习
+---------------
+
+
+    class Car{color, tires}
+    /|\
+    classs SportCar{boolean updoor,//上开门
+                int velocity // 速度}
+    /|\
+    class BMW{int power,String engine}
+
+super | this
+---------------
+    类内置的成员变量,指向的是父类对象的引用.只能用于类的内部使用,类似于this
+    如果当前类有和负累相同的成员,若访问父类成员,需要用到super
+
+super() | this()
+----------------
+    调用的是父类的构造函数.必须是第一条语句。

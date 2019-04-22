@@ -132,3 +132,7 @@ eclipse中配置maven
         User Settings : C:\myprograms\apache-maven-3.6.0\conf\settings.xml 
         自动解析本地仓库目录 : C:\Users\liuqi15\.m2\repository
     2.OK
+
+使用eclipse创建maven项目
+--------------------------
+    1.eclipse -> new project -> maven project -> 指定location -> 选择工件类型 archetype 中使用 archetype-quickstart

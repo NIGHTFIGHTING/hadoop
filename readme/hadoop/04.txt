@@ -98,8 +98,8 @@ maven
         ${tomcat_home}\webapps\nexus\WEB-INF\classes\nexus.properties
         // nexus-work=${user.home}/sonatype-work/nexus
         nexus-work=h:/maven-repo/nexus
-	runtime=${bundleBasedir}
-	nexus-app=${runtime}
+        runtime=${bundleBasedir}
+        nexus-app=${runtime}
     4.启动tomcat
         cmd
         Tomcat 9.0\bin\startup.bat
@@ -133,6 +133,58 @@ eclipse中配置maven
         自动解析本地仓库目录 : C:\Users\liuqi15\.m2\repository
     2.OK
 
+缺少winutils.exe文件以及xxx.dll文件
+--------------------------
+    1.解压bin.rar文件,将bin/*所有文件附睾到${hadoop_hom)/bin下
+    2.设置windows的环境变量
+      PATH=${hadoop_home}/bin;${hadoop_hom}/sbin;...
+    3.将bin.rar,bin/*.dll + winutils.ext文件放到系统目录下
+      系统目录:
+              C:\Windows\System32
+              C:\Windows\SysWOW64
+
+windows上配置hadoop_home环境变量
+-------------------------------
+    hadoop_home=d:\downloads\hadoop-2.7.3
+    path=%hadoop_home%\bin;%hadoop_home%\sbin;...
+
 使用eclipse创建maven项目
 --------------------------
     1.eclipse -> new project -> maven project -> 指定location -> 选择工件类型 archetype 中使用 archetype-quickstart
+
+设置文件块
+--------------------------
+    1.只有文件才有副本和块的概念.
+      文件blocksize默认是128，
+,最好块大小是1m.blocksize >= 最小值.
+    2.block默认是是128m
+    [hdfs-site.xml]
+    <configuration>
+        <property>
+            <name>dfs.replication</name>
+            <value>2</value>
+        </property>
+        <property>
+            <name>dfs.namenode.datanode.registration.ip-hostname-check</name>
+            <value>false</value>
+        </property>
+        <!-- -->
+        <property>
+            <name>dfs.namenode.fs-limits.min-block-size</name>
+            <value>1024</value>
+        </property>
+        <property>
+            <name>dfs.blocksize</name>
+            <value>2k</value>
+        </property>
+    </configuration>
+    3.分发配置文件
+        $>xsync.sh hdfs-site.xml
+    4.通过hdfs命令查询key
+        $>hdfs getconf -confKey dfs.blocksize
+        $>hdfs getconf -confKey dfs.namenode.fs-limits.min-block-size
+    5.重启hdfs
+　　　　$>stop-dfs.sh
+        $>start-dfs.sh
+    6.put文件到hdfs
+        $>hdfs dfs -put 1.txt hadoop

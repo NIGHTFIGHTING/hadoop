@@ -250,3 +250,12 @@ secondarynamenode
 --------------------------------
     1.使用hadoop API递归输出整个文件系统
     2.
+
+
+启动Hadoop后，namenode和datanode都启动，但datanode的存活数为0!
+https://blog.csdn.net/oschina_41140683/article/details/82620757
+在hdfs-site.xml中添加以下属性：
+<property>
+ <name>dfs.namenode.datanode.registration.ip-hostname-check</name>
+ <value>false</value>
+</property>

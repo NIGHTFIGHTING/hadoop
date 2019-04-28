@@ -188,3 +188,29 @@ windows上配置hadoop_home环境变量
         $>start-dfs.sh
     6.put文件到hdfs
         $>hdfs dfs -put 1.txt hadoop
+    7.使用API创建文件制定副本和块大小设置
+        private void printlnPath(FileSystem fs, Path p) {
+            try {
+                // 输出路径
+                System.out.println(p.toUri().toString());
+                if (fs.isDirectory(p)) {
+                    FileStatus[] files = fs.listStatus(p);
+                    if (files != null && files.length > 0) {
+                        for(FileStatus f : files) {
+                            Path p0 = f.getPath();
+                            printlnPath(fs, p0);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+       }
+
+        
+
+
+文件最少的副本数
+---------------------
+    dfs.namenode.replication.min=1    // dfs.replication.min(过时了)
+    dfs.replication.max=512 

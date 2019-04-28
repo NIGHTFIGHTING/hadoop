@@ -214,3 +214,22 @@ windows上配置hadoop_home环境变量
 ---------------------
     dfs.namenode.replication.min=1    // dfs.replication.min(过时了)
     dfs.replication.max=512 
+
+
+failover    // 容灾
+fault tolerance // 容错
+
+512进行一次校验,Crc32实现校验算法,通过本地实现,(hadoop/bin/hadoop.dll)
+
+chunk    // 512byte
+checksum    // 36byte = 4(校验和类型) +32(检验和值) 
+pack    // 每个packet包含多个chunk
+
+createPackage(packSize, chunkPerPacket, bytesCyrBlock, currentSeqno++, false)
+
+剖析文件写入过程
+----------------------
+    1.DistributedFiledSystem dfs = FileSystem.get(conf);
+      //RPC:remote procedure call,远程过程调用 
+
+

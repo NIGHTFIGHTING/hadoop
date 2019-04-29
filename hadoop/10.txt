@@ -21,7 +21,67 @@
     4.上下线
          dfs.hosts    // hdfs
          dfs.hosts.exclude    // hdfs
-         
+
+GFS
+----------------
+    google file system         
+
+Mysql:OLTP
+
 MR
 ----------------
     MapReduce
+    映射和化简
+    编程模型
+
+ 
+alt>s>v
+ctrl+3
+
+使用mr计算年度的最高气温
+-----------------------------
+    1.1901.gz + 1902.gz
+    2.编写mapper
+        [MaxTempMapper.java]
+        package com.it18zhang.mapreduce;
+        
+        import java.io.IOException;
+        
+        import org.apache.hadoop.io.IntWritable;
+        import org.apache.hadoop.io.LongWritable;
+        import org.apache.hadoop.io.Text;
+        import org.apache.hadoop.mapreduce.Mapper;
+        /**
+         * MR:Map
+         **/
+        public class MaxTempMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
+        
+            // 缺失常量
+            public static final int MISSING = 9999;
+            @Override
+            protected void map(LongWritable key, Text value, Mapper<LongWritable, Text, Text, IntWritable>.Context context)
+                    throws IOException, InterruptedException {
+                // 取得一整行文本
+                String line = value.toString();
+                // 提取年分值
+                String year = line.substring(15, 19);
+                // 定义气温变量
+                int airTemperature;
+                // 取出气温
+                if (line.charAt(87) == '+') {
+                    airTemperature = Integer.parseInt(line.substring(88, 92));
+                } else {
+                    airTemperature = Integer.parseInt(line.substring(87, 92)); 
+                }
+                // 提取质量
+                String quality = line.substring(92, 93);
+                
+                if (airTemperature != MISSING && quality.matches("[01459]")) {
+                    context.write(new Text(year), new IntWritable(airTemperature));
+                }
+            }
+        
+        }
+        
+    3.编写reducer
+    

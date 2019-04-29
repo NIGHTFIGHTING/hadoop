@@ -95,7 +95,7 @@ fail over    // 容灾
     3.导出jar
         使用eclipse的maven build菜单实现到处jar.
         跳过测试
-        clean package -DskilTests
+        clean package -DskipTests
     4.分发jar和配置文件到集群
          myhadoop_maven-0.0.1-SNAPSHOT.jar分发到${hadoop_home}/soft/hadoop/share/hadoop/common/lib
          core-site.xml分发到${hadoop_home}/soft/hadoop/etc/hadoop/

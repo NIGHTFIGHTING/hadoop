@@ -55,8 +55,36 @@ hadoop
     3.导出jar
         使用eclipse的maven build菜单实现到处jar.
         跳过测试
-        clean package -DskilTests
+        clean package -DskipTests
     4.分发jar和配置文件到集群
          myhadoop_maven-0.0.1-SNAPSHOT.jar分发到${hadoop_home}/soft/hadoop/share/hadoop/common/lib
          core-site.xml分发到${hadoop_home}/soft/hadoop/etc/hadoop/
 
+hadoop文件系统的基本操作
+--------------------------
+
+并行复制
+--------------------------
+    $>hadoop distcp hdfs://192.168.244.131:8020/user/centos/hadoop hdfs://192.168.244.131:8020/user/centos/data
+
+
+文件归档
+--------------------------
+    har归档产生一个目录,目录名称xxx.har,该目录下有相关的数据文件
+    _index    // 索引文件
+    part-0    // 数据文件
+    $>hadoop archive -archiveName my.har -p /user/centos/hadoop /user/centos    // 归档
+    $>hdfs dfs -ls -R har:///user/centos/my.har    // 查看归档内容
+
+
+数据完整性
+--------------------------
+    校验和(checksum,CRC-32)
+    校验和使用32的证书,使用4个字节存储,开销小要校验数据1%
+    io.file.buffer.size    // 指定多少字节校验一次
+    不能超过io.file.buffer.size
+
+datanode
+--------------------------
+    blk_xxxxx    // 块数据,没有元数据,纯粹的数据
+    blk_xxxxx_1032.meta    // 校验和数据,4字节对应512数据字节,7个字节的头信息,

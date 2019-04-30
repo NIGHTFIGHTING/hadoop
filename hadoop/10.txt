@@ -84,4 +84,81 @@ ctrl+3
         }
         
     3.编写reducer
-    
+        [MaxTempReducer.java]
+        package com.it18zhang.mapreduce;
+
+        import org.apache.hadoop.mapreduce.Reducer;
+        import java.io.IOException;
+        import org.apache.hadoop.io.IntWritable;
+        import org.apache.hadoop.io.Text;
+        
+        /**
+         * MR:Reduce
+         **/
+        
+        public class MaxTempReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+        
+            @Override
+            protected void reduce(Text key, Iterable<IntWritable> values,
+                    Reducer<Text, IntWritable, Text, IntWritable>.Context context) throws IOException, InterruptedException {
+                // 最大值
+                int maxValue = Integer.MIN_VALUE;
+                // 提取年份的最大值
+                for (IntWritable value : values) {
+                    maxValue = Math.max(maxValue, value.get());
+                }
+                // output key maxValue
+                context.write(key, new IntWritable(maxValue));
+            }
+        
+        }
+    4.编写
+        [App.java]
+        public class App {
+  
+         public static void main(String[] args) {
+             if (args.length != 2) {
+                 System.err.println("Usage: MaxTemperature <input path> <output path>");
+             }
+             try {
+                 // 创建配置对象
+                 Configuration conf = new Configuration();
+                 // 创建job对象
+                 Job job = Job.getInstance(conf);
+                 
+                 // 设置jar搜索类
+                 job.setJarByClass(App.class);
+                 // 设置作业名称
+                 
+                 // 添加输入路径
+                 FileInputFormat.addInputPath(job, new Path(args[0]));
+                 
+                 // 设置输出路径
+                 FileOutputFormat.setOutputPath(job, new Path(args[1]));
+                 //设置Mapper类型
+                 job.setMapperClass(MaxTempMapper.class);
+                 //设置Reducer类型
+                 job.setReducerClass(MaxTempReducer.class);
+                 //设置输出key类型
+                 job.setOutputKeyClass(Text.class);
+                 //设置输出Value类型
+                 job.setOutputValueClass(IntWritable.class);
+                 System.exit(job.waitForCompletion(true) ? 0 : 1);
+             } catch (Exception e) {
+                 
+             }
+         }
+     
+     }
+     5.导出jar包
+         mapreduce-0.0.1-SNAPSHOT.jar
+     6.put天气文件到hdfs
+     7.复制mapreduce-0.0.1-SNAPSHOT.jar到共享目录
+     8.启动yarn进程
+         $>start-yarn.sh
+     9.验证
+         $>xcall.sh jps
+     10.执行hadoop jar进行mr作业
+         $>hadoop jar mapreduce-0.0.1-SNAPSHOT.jar com.it18zhang.mapreduce.App /user/centos/hadoop/data /user/centos/hadoop/out
+
+$>yarn-daemon.sh stop nodemanager

@@ -35,8 +35,10 @@ MR
     编程模型
 
  
+eclipse显示Override/Implement Methods
 alt>s>v
 ctrl+3
+右键->source->Override/Implement Methods
 
 使用mr计算年度的最高气温
 -----------------------------
@@ -162,3 +164,133 @@ ctrl+3
          $>hadoop jar mapreduce-0.0.1-SNAPSHOT.jar com.it18zhang.mapreduce.App /user/centos/hadoop/data /user/centos/hadoop/out
 
 $>yarn-daemon.sh stop nodemanager
+
+
+word count
+----------------------------
+hello world1 hello world2 hello world1 hello world3
+hello world1 hello world2 hello world1 hello world3
+hello world1 hello world2 hello world1 hello world3
+hello world1 hello world2 hello world1 hello world3
+
+map(keyin, valuein, keyout, valueout) {
+    map() {
+        ...
+        String line = valuein.toString();
+        String[] arr = line.split(" ");
+        
+        for (String w : arr) {
+            context.write(new Text(w), new IntWritable(1));
+        }
+    }
+}
+
+
+reduce
+------------------------
+    public void reduce(Text key, Iterable<IntWritable>, Context ctx) {
+        for() {
+            ++;
+            ctx.write();
+        }
+    }
+hadoop jar wc-0.0.1-SNAPSHOT.jar com.it18zhang.wc.App /user/centos/hadoop/data2 /user/centos/hadoop/out2
+
+
+调整集群
+--------------------------
+    1.配置206是2nn,注释掉dfs.hosts属性和dfs.hosts.exclude属性
+        [hdfs-site.xml]
+        <configuration>
+            <property>
+                <name>dfs.replication</name>
+                <value>2</value>
+            </property>
+        
+            <property>
+               <name>dfs.namenode.datanode.registration.ip-hostname-check</name>
+               <value>false</value>
+            </property>
+            <property>
+               <name>dfs.blocksize</name>
+               <value>128m</value>
+            </property>
+            <property>
+                <name>dfs.namenode.name.dir</name>
+                <value>file:///home/centos/hadoop/dfs/name1,file:///home/centos/hadoop/dfs/name2</value>
+            </property> 
+            <property>
+                <name>dfs.datanode.data.dir</name>
+                <value>file:///home/centos/hadoop/dfs/data1,file:///home/centos/hadoop/dfs/data2</value>
+            </property> 
+            <property>
+                <name>dfs.namenode.secondary.http-address</name>
+                <value>s206:50090</value>
+            </property> 
+            <!---
+            <property>
+                <name>dfs.hosts</name>
+                <value>/soft/hadoop/etc/hadoop/datanodes.host</value>
+            </property> 
+            <property>
+                <name>dfs.hosts.exclude</name>
+                <value>/soft/hadoop/etc/hadoop/datanodes.exclude.host</value>
+            </property> 
+            <property>
+               <name>dfs.namenode.fs-limits.min-block-size</name>
+               <value>1024</value>
+            </property>
+            -->
+        </configuration>
+    2.yarn-site.xml文件注释掉inpath等属性
+        <configuration>
+            <property>
+                <name>yarn.resourcemanager.hostname</name>
+                <value>s201</value>
+            </property>
+            <property>
+                <name>yarn.nodemanager.aux-services</name>
+                <value>mapreduce_shuffle</value>
+            </property>
+            <!--
+            <property>
+                <name>yarn.resourcemanager.bodes.include-path</name>
+                <value>/soft/hadoop/etc/hadoop/nms.host</value>
+            </property>
+            <property>
+                <name>yarn.resourcemanager.bodes.exclude-path</name>
+                <value>/soft/hadoop/etc/hadoop/nms.exclude.host</value>
+            </property>
+            -->
+        </configuration>
+    3.slaves配置文件如下
+        [slaves]
+        s202
+        s203
+    4.注释掉回收站
+        <configuration>
+            <property>
+                <name>fs.defaultFS</name>
+                <value>hdfs://s201/</value>
+            </property>
+            <property>
+                <name>hadootmp.dir</name>
+                <value>/home/centos/hadoop</value>
+            </property>
+            <!--
+            <property>
+                <name>fs.trash.interval</name>
+                <value>1</value>
+            </property>
+            <property>
+                <name>fs.trash.checkpoint.interval</name>
+                <value>1</value>
+            </property>
+            <property>
+                <name>net.topology.node.switch.mapping.impl</name>
+                <value>com.it18zhang.myhadoop_maven.MyDNSToSwitchMapping</value>
+            </property>
+            -->
+        </configuration>
+
+C:\Windows\System32\drivers\etc\hosts

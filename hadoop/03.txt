@@ -203,9 +203,9 @@ secondarynamenode
     //以下属性均有hadoop.tmp.dir决定
     [core-site.xml]
     hadoop.tmp.dir=/home/centos/hadoop
-    dfs.namenode.name.dir=file://${hadoop.tmp.dir}/dfs/name
-    dfs.namenode.data.dir=file://${hadoop.tmp.dir}/dfs/data
-    dfs.namenode.checkpoint.dir=file://${hadoop.tmp.dir}/dfs/namesecondary
+    dfs.namenode.name.dir=file:///${hadoop.tmp.dir}/dfs/name
+    dfs.namenode.data.dir=file:///${hadoop.tmp.dir}/dfs/data
+    dfs.namenode.checkpoint.dir=file:///${hadoop.tmp.dir}/dfs/namesecondary
     2.分发core-site.xml文件
         $>xsync core-site.xml
     3.格式化文件系统,只对namenode的本地目录进行初始化

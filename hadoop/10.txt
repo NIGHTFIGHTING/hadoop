@@ -125,6 +125,10 @@ ctrl+3
              try {
                  // 创建配置对象
                  Configuration conf = new Configuration();
+                 FileSystem fs = FileSystem.get(conf);
+                 if (fs.exits(new Path(args[1])) {
+                     fs.delete(new Path(args[1]), true);
+                 }
                  // 创建job对象
                  Job job = Job.getInstance(conf);
                  
@@ -145,6 +149,11 @@ ctrl+3
                  job.setOutputKeyClass(Text.class);
                  //设置输出Value类型
                  job.setOutputValueClass(IntWritable.class);
+                 Iterator<Entry<String, String>> it = conf.iterator();
+                 while (it.hasNext()) {
+                     Entry<String, String> e = it.next();
+                     System.out.println(e.getKey() + "=" + e.getValue());
+                 }
                  System.exit(job.waitForCompletion(true) ? 0 : 1);
              } catch (Exception e) {
                  
@@ -293,4 +302,14 @@ hadoop jar wc-0.0.1-SNAPSHOT.jar com.it18zhang.wc.App /user/centos/hadoop/data2 
             -->
         </configuration>
 
+
+windows配置ip地址到主机名的映射
+-------------------
 C:\Windows\System32\drivers\etc\hosts
+
+
+combiner
+--------------------------
+    map侧的reduce过程,但不是所有,r都适用
+    combiner就是reducer
+    job.setCombinerClass(WCReducer.class);

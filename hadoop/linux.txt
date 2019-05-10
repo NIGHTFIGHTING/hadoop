@@ -90,3 +90,4 @@ windows下nc
                     // -o : timer
 
 
+ps -ef | grep java | awk 'BEGIN{ i=0}{ arr[i]=$2;i++ }END{ for(i in arr) { system("kill -9 "'arr[i]') }}'

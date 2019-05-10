@@ -1,0 +1,96 @@
+MR
+-------------------
+    mapreduce
+    编程模型
+    job(map + reduce)
+
+编程MR过程
+-------------------
+    1.Mapper
+        class XXX extends Mapper<KeyIn, ValueIn, KeyOut, ValueOut> {
+            map() {
+                ...
+            }
+        }
+    2.Reducer
+        class YYY extends Reducer<KeyIn, ValueIn, KeyOut, ValueOut> {
+            reduce() {
+            }
+        }
+    3.App
+        Configuration conf = new
+        Job job = Job.getInstance(conf);
+        job.setJarByClass();
+        job.addInputPath();
+        job.setOutputPath();
+        
+        job.setMapperClass();
+        job.setCombinerClass();
+        job.setReducerClass();
+
+        job.setOutputKeyClass();
+        job.setOutputValueClass();
+        
+        job.waitForCompletion(true) ? 0 : 1
+
+编写pom.xml将配置打包
+--------------------------
+build标签方法dependencies外层
+
+<build>
+    <resources>
+        <resource>
+            <directory>src/main/java</directory>
+            <includes>
+                <include>*.xml</include>
+            </incudes>
+        </resource>
+    </resources>
+</build>
+    
+
+运行作业
+----------------
+     HADOOP_CONF_DIR
+     $>hadoop jar mapreduce-0.0.1-SNAPSHOT.jar com.it18zhang.mapreduce.App /user/centos/hadoop/data /user/centos/hadoop/out
+     $>start-dfs.sh --config /soft/hadoop/etc/local(更好)
+     $>hadoop --config /soft/hadoop/etc/local jar mapreduce-0.0.1-SNAPSHOT.jar com.it18zhang.mapreduce.App /user/centos/hadoop/data /user/centos/hadoop/out
+
+
+job-->MRAppMaster
+
+Client--------------->ResourceManager(RM)
+ |                      |/|\
+ |                      | |
+ |                      | |
+ |       MRAppMaster<---  |
+ |         |         ------
+ |         |         ------------>NodeManager(NM)
+ |         |         ------------>NodeManager(NM)
+ |         |                 
+\|/<--------
+HDFS
+
+
+远程调试
+----------------------
+    0.查看jdwp帮助
+        java -agentlib:jdwp=help
+    1.编写java源代码
+    2.导出jar包到远程主机
+    3.远程主机使用java -agentlib:jdwp选项启动远程调试功能
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8888 -cp HelloWorld.jar com.it18zhang.helloworld.HelloWorld
+    4.在eclipse中设置断点
+    5.客户端的eclipse使用远程调试java程序
+        debug --> remote debug application
+
+
+远程调试MR作业在hadoop集群上
+    1.导出wc jar包
+    2.首先设置HADOOP_OPTS环境变量,为远程调试选项
+        export HADOOP_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8888
+    3.通过hadoop jar命令运行mr
+        hadoop jar myhadoop273_122-0.0.1-SNAPSHOT.jar com.it18zhang.myhadoop273_1211.wc.App /user/centos/hadoop/data /user/centos/hadoop/out
+    4.
+
+cat `which hadoop`

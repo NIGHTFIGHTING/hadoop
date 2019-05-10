@@ -35,15 +35,6 @@ MR
     编程模型
 
  
-eclipse显示Override/Implement Methods
-----------------------------
-alt>s>v
-ctrl+3
-右键->source->Override/Implement Methods
-
-eclipse显示
-----------------------------
-Navigate > Open Type
 
 使用mr计算年度的最高气温
 -----------------------------

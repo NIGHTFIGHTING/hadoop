@@ -2,6 +2,7 @@
   
 from operator import itemgetter  
 import sys  
+from utils import get_pid
   
 current_word = None  
 current_count = 0  
@@ -22,6 +23,7 @@ for line in sys.stdin:
         # count was not a number, so silently  
         # ignore/discard this line  
         continue  
+    get_pid("reduce() ")
   
     # this IF-switch only works because Hadoop sorts map output  
     # by key (here: word) before it is passed to the reducer  

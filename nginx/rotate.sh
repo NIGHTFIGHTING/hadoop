@@ -1,8 +1,10 @@
 #/bin/bash
 #Rotate the Nginx logs to prevent a single logfile from consuming too much disk space.
 LOGS_PATH=/usr/local/nginx/logs/history
-if [ ! -f ${LOGS_PATH} ];then
+if [ ! -d ${LOGS_PATH} ];then
+    echo "the file:${LOGS_PATH} is not exist"
     mkdir ${LOGS_PATH}
+    echo "create the file${LOGS_PATH} sucess"
 fi
 CUR_LOGS_PATH=/usr/local/nginx/logs
 YESTERDAY=$(date -d "yesterday" +%Y-%m-%d)

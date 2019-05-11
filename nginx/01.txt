@@ -50,3 +50,14 @@ bugfix修复的bug
 change重构
 Mainline version主干版本
 Stable version稳定版本
+
+07.选择哪一个Nginx发行版本？
+(1)开源免费的Nginx与商业版Nginx Plus
+开源版:nginx.org
+商业版:nginx.com
+(2)tengine
+(3)开源版OpenResty:http://openresty.org
+商业版OpenResty:http://openresty.com
+nginx非阻塞,事件框架以lua语言,同步开发方式
+兼具高性能,开发效率提升特点
+api服务器,web防火墙,使用OpenResty

@@ -61,3 +61,27 @@ Stable version稳定版本
 nginx非阻塞,事件框架以lua语言,同步开发方式
 兼具高性能,开发效率提升特点
 api服务器,web防火墙,使用OpenResty
+
+08. 编译出适合自己的 Nginx
+(1)auto/cc用于编译,auto/os所有lib库,操作系用判断
+auto其余的是辅助configure去判定nginx支持那些模块,当前操作系统有哪些特性,供给nginx使用
+(2)CHANGES nginx每一个版本有哪些特性,bugfix
+CHANGES.ru俄语
+(3)conf示例文件
+(4)configure生成中间文件,执行编译前
+(5)mv contrib/vim/* ~/.vim/
+(6)html
+(7)man是nginx的帮助文件
+(8)src
+
+编译
+------------------
+./configure  --help
+./configure --prefix=/home/centos/nginx
+configure执行完成,中间文件objs
+objs/ngx_modules.c决定编译的时候有哪些文件被编译到nginx
+make
+objs/nginx,nginx版本升级不能执行make install,需要把objs/nginx拷贝到安装目录中
+make install首次安装可以使用这个命令
+
+09.Nginx配置文件的通用语法介绍

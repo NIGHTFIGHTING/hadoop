@@ -104,3 +104,18 @@ d,w,M,y
    upstream表示上游服务
    server表示对应一个,或一组域名
    location表示一个url表达式
+
+10.Nginx命令行及演示:重载,热部署,日志切割
+
+
+重载
+./nginx -s reload
+
+热部署:
+ps -ef | grep nginx
+mv nginx nginx.old
+kill -USR2 pid(新启动一个nginx master进程,使用新的nginx二进制文件.老的worker也在运行,新的master会生成新的worker,平滑的把所有请求过度到新的二进制文件中起的nginx进程中,实现平滑过渡)
+kill -WINCH pid 优雅的关闭你所有的worker进程,老的master进程还在,老的master进程不是自动退出,允许我们进行版本回退
+
+日志切割
+

@@ -85,3 +85,22 @@ objs/nginx,nginx版本升级不能执行make install,需要把objs/nginx拷贝�
 make install首次安装可以使用这个命令
 
 09.Nginx配置文件的通用语法介绍
+(1)配置语法(ascii文本文件)
+[1]配置文件由指令directive与指令directive block块构成
+[2]每条指令以;分号结尾,指令与参数间以空格符号分隔
+[3]指令块以{}大括号将多条指令组织在一起
+[4]include语句允许组合多个配置文件以提升可维护性
+[5]使用#符号添加注释,提高可读性
+[6]使用$符号使用变量
+[7]部分指令的参数支持正则表达式
+
+(2)配置参数:时间单位
+ms,s,m,h
+d,w,M,y
+(3)配置参数:空间单位
+什么都不加表示bytes,k/K,m/M,g/G
+(4)http配置的指令块
+   http大括号里面表示里面所有的指令都是由http模块解析执行
+   upstream表示上游服务
+   server表示对应一个,或一组域名
+   location表示一个url表达式

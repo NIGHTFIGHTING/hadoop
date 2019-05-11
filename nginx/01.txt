@@ -112,10 +112,25 @@ d,w,M,y
 ./nginx -s reload
 
 热部署:
-ps -ef | grep nginx
+当需要将正在运行中的 nginx 升级、添加/删除服务器模块时，可以在不中断服务的情况下，使用新版本、重编译的 nginx 可执行程序替换旧版本的可执行程序
+[1]
+使用新的可执行程序替换旧的可执行程序，对于编译安装的 nginx，可以将新版本编译安装到旧版本的 nginx 安装路径中。替换之前，最好备份一下旧的可执行文件。 
 mv nginx nginx.old
-kill -USR2 pid(新启动一个nginx master进程,使用新的nginx二进制文件.老的worker也在运行,新的master会生成新的worker,平滑的把所有请求过度到新的二进制文件中起的nginx进程中,实现平滑过渡)
-kill -WINCH pid 优雅的关闭你所有的worker进程,老的master进程还在,老的master进程不是自动退出,允许我们进行版本回退
+ps -ef | grep nginx
+[2]
+kill -USR2 [旧版本Nginx主进程pid](新启动一个nginx master进程,使用新的nginx二进制文件.老的worker也在运行,新的master会生成新的worker,平滑的把所有请求过度到新的二进制文件中起的nginx进程中,实现平滑过渡)
+[3]
+kill -WINCH [旧版本Nginx主进程pid] 优雅的关闭你所有的worker进程,老的master进程还在,老的master进程不是自动退出,允许我们进行版本回退
+
+[4]
+版本回退
+kill -HUP [旧版本Nginx主进程pid]
+kill -QUIT [新版本Nginx主进程pid]
+kill -TERM [新版本Nginx主进程pid]:强制退出
+升级成功退出旧版本
+kill -QUIT [旧版本Nginx主进程pid]
+
 
 日志切割
-
+./nginx -s reopen
+rotate.sh

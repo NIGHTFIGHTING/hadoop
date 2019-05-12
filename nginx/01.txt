@@ -125,8 +125,8 @@ Nginx命令行
              优雅的停止服务: quit
              重载配置文件: reload
              重新开始记录日志文件: reopen
-
-
+测试配置文件是否有语法错误:-t -T
+打印nginx的版本信息,编译信息等:-v -V
 
 重载
 ./nginx -s reload
@@ -154,3 +154,31 @@ kill -QUIT [旧版本Nginx主进程pid]
 日志切割
 ./nginx -s reopen
 rotate.sh
+
+11.用Nginx搭建一个可用的静态资源Web服务器
+------------------------------------------------------
+
+(1)
+root:会把url中的路径带到文件中
+alias后面的路径与url后面的路径是对应的
+gzip会压缩
+gzip_min_length 1;小于1字节的内容就不再执行压缩了,因为有很多文件内容,在一个TCP报文中就发出去了,如果使用gzip在消耗cpu,意义不大
+gzip_comp_level 2;压缩级别
+gzip_types test/plain application/x-javascript text/css application/xml text/javascript application/x-httpd-php image/jprg image/gif image/png;对某些类型的文件做压缩
+Google浏览器调试,F12
+NetWork->All,点击Name中内容看见Response Headers:Content-Encoding: gzip
+(2)
+autoindex on;
+http://nginx.org/en/docs/http/ngx_http_autoindex_module.html
+dlib-19.17/docs/* 目录文件移动到 nginx/dlib/
+(3)
+公网带宽有限,当有许多并发用户,使用我们的带宽时,会形成争抢关系.为了用户访问大文件的时候,限制他的速度,以期望能够分离出足够的带宽,给用户访问必要的小文件,如css,jss等小文件
+set $limit_rate 1k;限制nginx向client浏览器响应的速度,每秒传输这么多字节到浏览器中
+ngx_http_core_module
+(4)日志
+log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                  '$status $body_bytes_sent "$http_referer" '
+                  '"$http_user_agent" "$http_x_forwarded_for"';
+为什么要命名?对不同域名下做不同格式的日志记录,或者对不同的url,一些大文件,或者反向代理等等不同用途时,记录不同日志格式
+access_log logs/geek.access.log main;
+所在的位置决定所属的一类请求,会记录在后面的路径中,采用main的格式

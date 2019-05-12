@@ -152,7 +152,8 @@ kill -QUIT [旧版本Nginx主进程pid]
 
 
 日志切割
-./nginx -s reopen
+
+/nginx -s reopen
 rotate.sh
 
 11.用Nginx搭建一个可用的静态资源Web服务器
@@ -182,3 +183,6 @@ log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
 为什么要命名?对不同域名下做不同格式的日志记录,或者对不同的url,一些大文件,或者反向代理等等不同用途时,记录不同日志格式
 access_log logs/geek.access.log main;
 所在的位置决定所属的一类请求,会记录在后面的路径中,采用main的格式
+
+12.用Nginx搭建一个具备缓存功能的反向代理服务
+--------------------------------------------------------

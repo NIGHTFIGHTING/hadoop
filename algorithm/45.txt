@@ -1,0 +1,40 @@
+45.面试题:爬楼梯
+
+climbin stairs
+
+楼梯总共有两种走法,一次走一步,或者一次走两步
+
+elovator电梯
+escalator扶梯
+
+1.回溯
+到达楼梯顶端的方法:可以由到达倒数第一节楼梯的方法,加上,可以到达倒数第二节楼梯的方法的总和
+f(n)=f(n-1)+f(n-2)
+f(0)=f(1)=1
+Recursive递归
+Memorization记忆
+
+2.
+for() {
+    f[n] = f[n-1] + f[n-2];
+} 
+
+时间复杂度:O(N)
+内存复杂符:O(1)
+
+a.DP状态的定义
+f(n):到第n阶的总走法个数
+b.DP方程
+
+思考:有没有更快的解法?
+public int climbStairs(int n) {
+    if (n == 0 || n == 1 || n == 2) {
+        return n
+    }
+    mem[0] = 1;
+    mem[1] = 2;
+    for (int i = 2; i < n; ++i) {
+        mem[i] = mem[i-1] + mem[i-2];
+    }
+    return mem[n-1];
+}

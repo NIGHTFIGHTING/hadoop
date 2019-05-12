@@ -1,0 +1,52 @@
+46 面试题:三角形的最小路径和
+
+Triangle,m行,n列
+
+traversal
+
+1.回溯,递归
+自顶向下
+Traverse(i,j) {
+    Traverse(i+1, j)
+    Traverse(i+1, j+1)
+}
+时间复杂度O(2^n)
+
+2.贪心
+X不可行
+
+
+3.DP
+[1].状态定义:DP[i,j]:从底bottom走到i,j这个点,路径和最小值
+        bottom->(i,j)
+        path sum,min
+[2].方程:
+DP[i,j]=min(DP(i+1, j), DP(i+1, j+1)) + Triangle[i,j]
+DP[m-1, j] = Triangle[m-1, j]
+DP[0, 0]为所求结果
+时间复杂度O(m*n)
+空间复杂度
+
+class Solution {
+public:
+    int minimumTotal(vector<vector<int> >& triangle) {
+        vector<int> mini = triangle[triangle.size()-1];
+        for (int i = triangle.size() - 2; i >= 0; --i) {
+            for (int j = 0; j < triangle[i].size(); ++j) {
+                mini[j] = triangle[i][j] + min(mini[j], mini[j+1);
+            }
+        }
+        return mini[0];
+    }
+};
+
+class Solution(object):
+    def minimumTotal(self, triangle):
+        if not triangle: return 0
+        res = triangle[-1]
+        for i in xrange(len(triangle) - 2, -1, -1):
+            for j in xrange(len(triangle[i]])):
+                res[j] = min(res[j], res[j+1]) + triangle[i][j]
+        return res[0]
+
+状态压缩

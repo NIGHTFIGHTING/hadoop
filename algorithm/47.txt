@@ -1,0 +1,55 @@
+47.面试题:乘积最大子序列
+
+Max product Subarray
+    乘积
+
+2,3,-2,4 => 6
+-2,0,-1 => 0
+2,3,-10,5,-1 => 300
+
+1.暴力求解
+Recursive
+class Solution {
+public:
+    int maxProduct(vector<int>& nums) {
+        vector<int> max_nums = nums;
+        int max_num = max_nums[0];
+        for (int i = 0; i < nums.size(); ++i) {
+            int sum = nums[i];
+            for (int j = i+1; j < nums.size(); ++j) {
+                    max_nums[i] = max(max_nums[i], (sum = sum *nums[j]));
+            }
+            if (max_num < max_nums[i]) {
+               max_num = max_nums[i]; 
+            }
+        }
+        reuturn max_num;
+    }
+};
+
+2.DP两部曲
+状态定义:DP[i],下表从0开始探到下标为i 0->i:max product subarray,并且是把i选上,需要求dp[n-1],dp[n-2]...dp[0]
+DP[i][2] 0表示正数最大值,1表示负数最大值
+状态方程:
+DP[i, 0] = 
+if a[i] >= 0 
+     DP[i-1, 0] * a[i]
+else
+     DP[i-1, 1] * a[i]           
+
+DP[i, 1] =
+if a[i] >= 0
+    DP[i-1, 1] * a[i]
+else
+    DP[i-1, 0] * a[i]
+
+
+def maxProduct(self, nums):
+    if nums is None: return 0
+    res, curMax, curMin = nums[0], nums[0], nums[0]
+    for i in range(1, len(nums)):
+        num = nums[i]
+        curMax, curMin = curMax * num, curMin * num
+        curMin, curMax = min(curMax, curMin), max(curMax, curMin)
+        res = curMax if curMax > res else res
+    return res

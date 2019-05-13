@@ -1,6 +1,6 @@
 45.面试题:爬楼梯
 
-climbin stairs
+climbing stairs
 
 楼梯总共有两种走法,一次走一步,或者一次走两步
 

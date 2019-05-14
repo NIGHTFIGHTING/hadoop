@@ -320,3 +320,21 @@ Nginx握手时候看椭圆加密算法和RSA的非对称加密算法这两个性
 
 18. 用免费 SSL 证书实现一个 HTTPS 站点
 ------------------------------------------------
+
+$>certbot --nginx --nginx-server-root=/home/centos/openresty/nginx/conf -d geek.taohui.pub
+屏幕显示内容
+1.No redirect
+所有http流量,明文显示的,不安全的流量全不用301或302,这样的重定向协议转到https站点
+2.Redirect
+
+include /etc/letsencrypt/options-ssl-nginx.conf文件内容解释:
+ssl_session_cache shared:le_nginx_SSL:1m,可以为4khttps连接服务
+ssl_session_timeout 1440m:每个http连接握手建立第一次连接后,如果断开再次建立连接,在这个session_timeout时间内,可以复用之前的密钥
+ssl_protocols:支持哪些版本的tls协议
+ssl_prefer_server_ciphers on:Nginx开始决定使用哪些协议与浏览器通信
+ssl_ciphers ":",安全套件之间一个分号分隔,排在前面的优先会被使用
+
+ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;表示使用非对称加密的时候使用怎样的参数,这些参数会决定我们的网络安全的加密强度
+
+19. 基于 OpenResty 用 Lua 语言实现简单服务
+-------------------------------------------------

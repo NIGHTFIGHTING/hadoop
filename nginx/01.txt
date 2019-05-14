@@ -338,3 +338,11 @@ ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;表示使用非对称加密的时�
 
 19. 基于 OpenResty 用 Lua 语言实现简单服务
 -------------------------------------------------
+[1]下载OpenResty
+http://openresty.org/cn/download.html
+[2]分析目录结构
+build为编译生成的中间目标文件
+bundle/nginx-1.13.6:nginx源代码
+bundle/ngx*为nginx的第三方模块,c代码,通常会以ngx开头
+bundle/lua*的lua模块,需要使用c模块,比如ngx_lua的功能
+configure

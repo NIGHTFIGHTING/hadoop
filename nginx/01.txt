@@ -177,6 +177,7 @@ NetWork->All,点击Name中内容看见Response Headers:Content-Encoding: gzip
 autoindex on;
 http://nginx.org/en/docs/http/ngx_http_autoindex_module.html
 dlib-19.17/docs/* 目录文件移动到 nginx/dlib/
+访问http://localhost:80/dlib
 (3)
 公网带宽有限,当有许多并发用户,使用我们的带宽时,会形成争抢关系.为了用户访问大文件的时候,限制他的
 速度,以期望能够分离出足够的带宽,给用户访问必要的小文件,如css,jss等小文件
@@ -255,3 +256,33 @@ location /report.html {
 [2]
 执行goaccess命令,在nginx/logs目录下,执行：
 goaccess access.log -o ../html/report.html --real-time-html --time-format='%H:%M:%S'  --date-format='%d/%b/%Y' --log-format=COMBINED
+直观看见access.log的变迁,对于分析网站的运营情况,可以看到每个时间点,每一天,每一周,甚至不同国家地区,
+使用不同浏览器和操作系统的人,访问我们站点的比例和分布
+
+14.从网络原理来看SSL安全协议
+---------------------------------------
+SSL协议(Secure Sockets Layer)
+TLS协议(Transport Layer Security)
+TLS如何保证http的明文消息被加密的?
+通过握手,交换密钥,警告,对称加密的应用数据是http层没有感知的情况下,做到数据安全加密
+TLS如果做到数据的安全加密?
+
+TL_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+ECDHE密钥交换:椭圆曲线加密算法的表达,解决浏览器和server之间怎样各自独立生成密钥,而最后生成的密钥是想用的
+密钥交换过程中需要对方验证各自的身份
+RSA:身份验证
+AES_128_GCM:对数据的加密解密需要对称加密算法,
+AES:算法
+128:AES算法支持3种加密强度
+GCM:AES有很多分组模式,一种分组模式,提高多核cpu情况加密解密性能
+SHA256:摘要算法,把不定长度的字符串,生成一个固定长度的更短的摘要
+
+15. 对称加密与非对称加密各自的应用场景
+-------------------------------------------
+对称加密:性能好
+非对称加密:根据数学原理生成一对密钥,特性:同一份文档公钥加密了,只有用私钥才能解密;用私钥加密了,只有用公钥才能解密
+非对称加密用途:
+1.Alice有一对公钥和私钥,把公钥发布给大家.比如Bob拿到Alice公钥.Bob传递一份原始文档给Alice,Bob拿公钥
+对原始文档进行加密,把密文发送给Alice.Alic用他的私钥才能解密.其他人用公钥都没有办法解密
+2.Alice用他的私钥进行加密,把密文发给Bob,或者任何人.只要Bob拿到Alice的公钥,公钥是公开的,用公钥
+可以解开这段密文,这段密文确实是Alice发出的.为TSL密钥交换算法提供了基本的签名保证.

@@ -6,7 +6,8 @@
 应用程序构成集群,两个需求:1.动态扩容2.容灾,因此反向代理需要具有负载均衡功能
 
 [2]缓存
-在链路中,nginx是企业内网的边缘节点,随着我们链路的增长,我们体验的时延会增加.我们可以把用户看起来在一段时间不变的,缓存在nginx部分.有nginx直接向用户提供访问
+在链路中,nginx是企业内网的边缘节点,随着我们链路的增长,我们体验的时延会增加.我们可以把用户看起来在
+一段时间不变的,缓存在nginx部分.有nginx直接向用户提供访问
 
 (2)静态资源服务
 我们在访问css,javascript,js文件,或者一些小图片
@@ -31,7 +32,8 @@
 (3)高可靠性,只nginx可以在服务器上不间断的运行数年
 (4)热部署,只在不停止服务的情况下,升级nginx
 在nginx可能跑着数百万的并发连接,普通服务可以直接kill掉进程,然后重启方法
-因为kill掉nginx进程,会导致操作系统为所有的,已建立连接的client发送TCP-RESET复位包,很多客户端无法很好的处理复位请求
+因为kill掉nginx进程,会导致操作系统为所有的,已建立连接的client发送TCP-RESET复位包,很多客户端无法很
+好的处理复位请求
 (5)BSD许可证
 nginx不只是开源免费的,可以在有定制需求的场景下,去修改nginx的源代码,在运行在我们的商业场景下
 
@@ -132,15 +134,18 @@ Nginx命令行
 ./nginx -s reload
 
 热部署:
-当需要将正在运行中的 nginx 升级、添加/删除服务器模块时，可以在不中断服务的情况下，使用新版本、重编译的 nginx 可执行程序替换旧版本的可执行程序
+当需要将正在运行中的 nginx 升级、添加/删除服务器模块时,可以在不中断服务的情况下,使用新版本、重编译的 nginx 可执行程序替换旧版本的可执行程序
 [1]
-使用新的可执行程序替换旧的可执行程序，对于编译安装的 nginx，可以将新版本编译安装到旧版本的 nginx 安装路径中。替换之前，最好备份一下旧的可执行文件。 
+使用新的可执行程序替换旧的可执行程序,对于编译安装的 nginx,可以将新版本编译安装到旧版本的 nginx 
+安装路径中。替换之前,最好备份一下旧的可执行文件。 
 mv nginx nginx.old
 ps -ef | grep nginx
 [2]
-kill -USR2 [旧版本Nginx主进程pid](新启动一个nginx master进程,使用新的nginx二进制文件.老的worker也在运行,新的master会生成新的worker,平滑的把所有请求过度到新的二进制文件中起的nginx进程中,实现平滑过渡)
+kill -USR2 [旧版本Nginx主进程pid](新启动一个nginx master进程,使用新的nginx二进制文件.老的worker
+也在运行,新的master会生成新的worker,平滑的把所有请求过度到新的二进制文件中起的nginx进程中,实现平滑过渡)
 [3]
-kill -WINCH [旧版本Nginx主进程pid] 优雅的关闭你所有的worker进程,老的master进程还在,老的master进程不是自动退出,允许我们进行版本回退
+kill -WINCH [旧版本Nginx主进程pid] 优雅的关闭你所有的worker进程,老的master进程还在,老的master进程
+不是自动退出,允许我们进行版本回退
 
 [4]
 版本回退
@@ -173,21 +178,25 @@ autoindex on;
 http://nginx.org/en/docs/http/ngx_http_autoindex_module.html
 dlib-19.17/docs/* 目录文件移动到 nginx/dlib/
 (3)
-公网带宽有限,当有许多并发用户,使用我们的带宽时,会形成争抢关系.为了用户访问大文件的时候,限制他的速度,以期望能够分离出足够的带宽,给用户访问必要的小文件,如css,jss等小文件
+公网带宽有限,当有许多并发用户,使用我们的带宽时,会形成争抢关系.为了用户访问大文件的时候,限制他的
+速度,以期望能够分离出足够的带宽,给用户访问必要的小文件,如css,jss等小文件
 set $limit_rate 1k;限制nginx向client浏览器响应的速度,每秒传输这么多字节到浏览器中
 ngx_http_core_module
 (4)日志
 log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
                   '$status $body_bytes_sent "$http_referer" '
                   '"$http_user_agent" "$http_x_forwarded_for"';
-为什么要命名?对不同域名下做不同格式的日志记录,或者对不同的url,一些大文件,或者反向代理等等不同用途时,记录不同日志格式
+为什么要命名?对不同域名下做不同格式的日志记录,或者对不同的url,一些大文件,或者反向代理等等不同
+用途时,记录不同日志格式
 access_log logs/geek.access.log main;
 所在的位置决定所属的一类请求,会记录在后面的路径中,采用main的格式
 
 12.用Nginx搭建一个具备缓存功能的反向代理服务
 --------------------------------------------------------
 
-[1]由于上游服务要处理非常复杂的业务逻辑,而且强调开发效率,性能不好.使用nginx作为反向代理,可以由一台nginx,把请求按照负载均衡算法代理给多态上游服务器工作,这样就是实现了水平扩展,在用户无感知情况下,我们添加更多的上游服务器,提升服务器性能.而当上游服务器出现问题的时候,nginx可以自动的把请求,从有问题处理灾难的服务器,转交给正常的服务器.
+[1]由于上游服务要处理非常复杂的业务逻辑,而且强调开发效率,性能不好.使用nginx作为反向代理,可以由一台nginx,把请求按照负载均衡算法代理给多态上游服务器工作,这样就是实现了水平扩展,在用户无感知情况下,
+我们添加更多的上游服务器,提升服务器性能.而当上游服务器出现问题的时候,nginx可以自动的把请求,从有
+问题处理灾难的服务器,转交给正常的服务器.
 
 11节中nginx静态web资源服务器作为上游服务器,openresty作为代理服务器
 listen    127.0.0.1:8080只有本机的进程才可以访问8080端口
@@ -198,17 +207,20 @@ upstream local {
 
 proxy_pass http://local;
 
-[2]因为有反向代理,在拿一些变量或一些值,可能会出错.比如一个tcp连接有对端地址,但是如果有了反向代理,我们的反向代理与客户端是一个tcp连接,而反向代理与上游服务器又是另外一个连接.所以如果去原来远端地址$remote_addr,这时候上游服务器取得是反向代理的地址.如果想拿浏览器的地址,作为我限制浏览器访问速度功能时,通过proxy_set_header,添加一个header发送给上游
+[2]因为有反向代理,在拿一些变量或一些值,可能会出错.比如一个tcp连接有对端地址,但是如果有了反向代理,
+我们的反向代理与客户端是一个tcp连接,而反向代理与上游服务器又是另外一个连接.所以如果去原来远端地址$remote_addr,这时候上游服务器取得是反向代理的地址.如果想拿浏览器的地址,作为我限制浏览器访问速度功能时,通过proxy_set_header,添加一个header发送给上游
 proxy_set_header Host $host;
 proxy_set_header X-Real-IP $remote_addr;
 proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;
 [3]http://nginx.org/en/docs/http/ngx_http_proxy_module.html
-因为nginx作为反向代理时,只有动态的请求,不同的用户访问同一个url看到的内容不同时,才交给上游服务器做不同处理.但是有些内容一段时间不发生变化.为了减轻nginx上游服务器的压力,把上游服务器的内容缓存一段时间.比如缓存1天,1天之内即使上游服务器对这个响应发生了变化,只有拿缓存的内容发送给浏览器
+因为nginx作为反向代理时,只有动态的请求,不同的用户访问同一个url看到的内容不同时,才交给上游服务器做
+不同处理.但是有些内容一段时间不发生变化.为了减轻nginx上游服务器的压力,把上游服务器的内容缓存一段时间.比如缓存1天,1天之内即使上游服务器对这个响应发生了变化,只有拿缓存的内容发送给浏览器
 proxy_cache_path 缓存文件写在哪一个目录下
 proxy_cache_path /tmp/nginxcache levels=1:2 keys_zone-my_cache:10m nax_size=10g
                  inactive=60m use_tmp_path=off;
 
 13. 用 GoAccess 实现可视化并实时监控 access 日志
+-----------------------------------------------------
 
 可以使用access日志分析定位问题,分析用户的运营数据.
 实时分析access比较困难,goaccess可以图形化的方式,通过websocket协议,实时把access log日志的变迁反映到浏览器中,方便分析问题
@@ -220,10 +232,26 @@ goaccess access.log -o report.html --log-format=COMBINED
 当access.log变迁时候,goaccess会新启一个websocket进程,通过一种端口的方式把新的access.log消息,推送到客户端
 
 goaccess安装:
-yum install -y goaccess
+[1]yum install -y goaccess
+[2]./configure --enable-utf8 --enable-geoip=legacy
+
+$ wget https://github.com/maxmind/geoip-api-c/releases/download/v1.6.11/GeoIP-1.6.11.tar.gz
+$ tar -xzvf GeoIP-1.6.11.tar.gz
+$ cd GeoIP-1.6.11
+$ ./configure
+$ make
+$ make install
 
 How to install the ncursesw development libraries
 On Debian/Ubuntu, sudo apt-get install libncursesw5-dev
 On RedHat/Fedora/CentOS, sudo yum install ncurses-devel
 
-
+[1]修改nginx服务器的配置文件nginx.conf
+location /report.html {
+    alias /home/centos/openresty/nginx/html/report.html;
+} 
+重新加载配置文件：
+./sbin/nginx -s reload
+[2]
+执行goaccess命令,在nginx/logs目录下,执行：
+goaccess access.log -o ../html/report.html --real-time-html --time-format='%H:%M:%S'  --date-format='%d/%b/%Y' --log-format=COMBINED

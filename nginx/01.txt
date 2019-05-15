@@ -149,11 +149,11 @@ kill -WINCH [旧版本Nginx主进程pid] 优雅的关闭你所有的worker进程
 
 [4]
 版本回退
-kill -HUP [旧版本Nginx主进程pid]
-kill -QUIT [新版本Nginx主进程pid]
-kill -TERM [新版本Nginx主进程pid]:强制退出
+kill -SIGHUP [旧版本Nginx主进程pid]
+kill -SIGQUIT [新版本Nginx主进程pid]
+kill -SIGTERM [新版本Nginx主进程pid]:强制退出
 升级成功退出旧版本
-kill -QUIT [旧版本Nginx主进程pid]
+kill -SIGQUIT [旧版本Nginx主进程pid]
 
 
 日志切割

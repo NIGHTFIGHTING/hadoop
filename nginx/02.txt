@@ -12,6 +12,7 @@ Nginx请求处理流程:
 
 (1)为什么称为状态机?
 因为nginx使用非阻塞的事件驱动处理引擎(epoll),使用异步处理引擎需要使用状态机识别请求和处理
+
 [1]处理4层TCP/UDP的传输层状态机
 [2]处理应用的http状态机
 [3]处理邮件Mail状态机
@@ -82,3 +83,25 @@ stop:TERM
 quit:QUIT
 
 24.reload重载配置文件的真相
+
+(1)向master进程发送HUP信号(reload 命令)
+(2)master进程校验配置语法是否正确
+(3)master进程打开新的监听端口
+(4)master进程用新配置启动新的worker子进程
+(5)master进程向老worker子进程发送QUIT信号
+(6)老worker进程关闭监听句柄,处理完当前连接结束进程
+
+不停机载入新配置,nginx始终保持运行中,平滑的更换了配置文件 
+(1)更新nginx.conf配置文件,向Master发送SIGHUP信号或者执行nginx -s reload
+(2)Master使用新配置启动新的worker进程
+(3)老配置Worker进程在完成已存在连接是优雅的退出
+
+25.
+
+热升级流程
+(1)将旧Nginx文件换成新Nginx文件(注意备份)
+(2)向master进程发送USR2信号
+(3)master进程修改pid文件名,加后缀.oldbin
+(4)master进程用新Nginx文件启动新master进程
+(5)向老master进程发送WINCH信号,关闭老worker
+(6)回滚:向老master发送HUP,向新master发送QUIT

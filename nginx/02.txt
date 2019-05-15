@@ -111,8 +111,35 @@ worker_shutdown_timeout最长会等多长时间,master在启动新的woker子进
 
 热升级流程
 (1)将旧Nginx文件换成新Nginx文件(注意备份)
+    新编译的nginx所指定配置选项,比如配置目录,log目录必须和老nginx一样
+    cp -f nginx nginx.old
 (2)向master进程发送USR2信号
-(3)master进程修改pid文件名,加后缀.oldbin
-(4)master进程用新Nginx文件启动新master进程
-(5)向老master进程发送WINCH信号,关闭老worker
-(6)回滚:向老master发送HUP,向新master发送QUIT
+       [1]master进程修改pid文件名,加后缀.oldbin
+       [2]master进程用新Nginx文件启动新master进程,新的master进程是老master的子进程
+       (中间过程,新老nginx进程并存,同时处理请求,然后老master关闭监听端口)
+(3)向老master进程发送WINCH信号,关闭老worker
+(老的master进程保存下来方便会滚)
+(4)[1]回滚:向老master发送HUP,向新master发送QUIT
+   [2]向老master进程发送SIGQUIT信号,要求它优雅的停止 
+
+
+26 优雅地关闭worker进程
+-------------------------------------
+(1)设置定时器worker_shutdown_timeout
+(2)关闭监听句柄
+(3)闭空闲连接(看nginx连接池,nginx保证资源利用最大化,经常保存一些连接,没有断开)
+(4)在循环中等待全部连接关闭,或者等到worker_shutdown_timeout时间立即退出
+(5)退出进程 
+
+如果我们在处理连接的时候,不管连接此时是怎样的作用,直接关闭连接,会导致用户收到错误
+优雅的关闭:(1)只nginx可以识别出当前的连接没有正在处理请求,这时把连接关闭
+           (2)有些情况nginx做不到,
+               比如nginx代理websocket协议,websocket后面通讯的fram帧里面,nginx不解析帧
+               nginx做tcp/udp反向代理,nginx没有办法识别需要经过多少报文才算是结束
+               主要是针对http请求
+                                  
+在特性失效时候考虑nginx有无能力判定一个连接应当被正确关掉
+或者说一些模块,或客户端不能正常处理请求时,nginx需要有一些措施,比如worker_shutdown_timeout保证worker进程退出
+
+27 网络收发与Nginx事件间的对应关系
+---------------------------------------

@@ -84,17 +84,22 @@ quit:QUIT
 
 24.reload重载配置文件的真相
 
+情况:发现nginx的worker进程数量变多了,因为老配置运行nginx的worker长时间没有退出
+
 (1)向master进程发送HUP信号(reload 命令)
 (2)master进程校验配置语法是否正确
-(3)master进程打开新的监听端口
+(3)master进程打开新的监听端口(子进程会继承父进程打开的所有端口)
 (4)master进程用新配置启动新的worker子进程
 (5)master进程向老worker子进程发送QUIT信号
-(6)老worker进程关闭监听句柄,处理完当前连接结束进程
+(6)老worker进程关闭监听句柄(标志新的连接只会到新的worker),处理完当前连接结束进程
 
 不停机载入新配置,nginx始终保持运行中,平滑的更换了配置文件 
 (1)更新nginx.conf配置文件,向Master发送SIGHUP信号或者执行nginx -s reload
 (2)Master使用新配置启动新的worker进程
 (3)老配置Worker进程在完成已存在连接是优雅的退出
+
+有一些请求出问题,client长时间没有处理,导致请求长时间占用在worker进程上,这个worker进程一直存在,
+worker_shutdown_timeout最长会等多长时间,master在启动新的woker子进程时,加上一个定时器,老worker在超时,会强制退出
 
 25.
 

@@ -44,3 +44,40 @@ Nginx采用事件驱动模型,希望每一个worker进程从头到尾,占有一�
 ,还需要把每个cpu核与worker进程绑定,可以更好使用每一颗cpu上的cpu缓存,来减少缓存失效命中率
 
 22 Nginx的进程结构实例演示
+master作为父进程启动很多子进程,Nginx父子进程通过信号管理
+ps -ef | grep nginx 看见当前进程id,和进程id
+./nginx -s reload把之前的worker,cache进程优雅退出,然后使用新的配置项,启动新的worker进程
+reload与SIGHUP信号相同
+kill -SIGHUP `cat nginx/logs/nginx.pid`
+向worker进程发送退出信号SIGQUIT,SIGINT,SIGTERM,worker进程退出向父进程master发送SIGCHILD信号,master进程知道子进程
+退出了,重启一个worker进程
+
+23 使用信号管理Nginx的父子进程
+
+Nginx是一个多进程的程序,多进程通信可以使用共享内存,信号等
+进程间管理使用信号
+Master进程:
+(1)监控worker进程CHILD,如果worker模块由于出现bug导致worker进程意外终止,master进程可以立刻通过CHILD信号,
+重新把worker进程拉起
+(2)接收信号管理worker进程,
+TERM,INT立刻停止nginx进程
+QUIT优雅停止nginx进程,保证对用户不发送立刻结束连接,不发送TCP-RESET复位请求报文
+HUP重载配置文件
+USR1重新打开日志文件,做日志文件切割
+USR2
+WINCH:热部署关闭老的worker进程
+
+为什么不直接对work进程发送信号?
+希望通过master进程管理worker进程
+work进程
+(1)接收信号TERM,INT,QUIT,USR1,WINCH
+
+nginx命令行
+启动nginx后,nginx把pid记在logs/nginx.pid,文件中记录master进程pid
+执行./nginx -s 命令行,读取pid文件中master进程pid,向进程发送信号
+reload:HUP
+reopen:USR1
+stop:TERM
+quit:QUIT
+
+24.reload重载配置文件的真相

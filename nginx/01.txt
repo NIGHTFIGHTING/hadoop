@@ -217,7 +217,7 @@ proxy_set_header X-Forward-For $proxy_add_x_forwarded_for;
 因为nginx作为反向代理时,只有动态的请求,不同的用户访问同一个url看到的内容不同时,才交给上游服务器做
 不同处理.但是有些内容一段时间不发生变化.为了减轻nginx上游服务器的压力,把上游服务器的内容缓存一段时间.比如缓存1天,1天之内即使上游服务器对这个响应发生了变化,只有拿缓存的内容发送给浏览器
 proxy_cache_path 缓存文件写在哪一个目录下
-proxy_cache_path /tmp/nginxcache levels=1:2 keys_zone-my_cache:10m nax_size=10g
+proxy_cache_path /tmp/nginxcache levels=1:2 keys_zone=my_cache:10m nax_size=10g
                  inactive=60m use_tmp_path=off;
 
 13. 用 GoAccess 实现可视化并实时监控 access 日志

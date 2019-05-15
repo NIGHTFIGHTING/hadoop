@@ -6,17 +6,17 @@ nginx运行在企业的边缘节点,他处理的流量是应用服务器处理�
 
 为什么nginx采用master-worker架构模型?
 为什么worker进程数量和cpu核数相匹配?
-需要在多个worker间共享数据时候,为什么在TSL,或者一些限流限速场景,他们的共享方式是有所不同的
+需要在多个worker间共享数据时候,为什么在TSL,或者一些限流限速场景,他们的共享方式是有所不同的?
 
 Nginx请求处理流程:
-处理4层TCP/UDP的传输层状态机
-处理应用的http状态机
-处理邮件Mail状态机
 
-为什么称为状态机?
+(1)为什么称为状态机?
 因为nginx使用非阻塞的事件驱动处理引擎(epoll),使用异步处理引擎需要使用状态机识别请求和处理
+[1]处理4层TCP/UDP的传输层状态机
+[2]处理应用的http状态机
+[3]处理邮件Mail状态机
 
-每一种状态机在解析出请求,需要访问静态资源时候,对反向代理内容可以做磁盘缓存
+(2)每一种状态机在解析出请求,需要访问静态资源时候,对反向代理内容可以做磁盘缓存(proxy_pass,proxy_cache)
 处理静态资源问题:当整个内存已经不足以完全缓存住所有的文件,缓存信息,sendfile,aio调用退化为阻塞的磁盘调用,使用线程池处理磁盘阻塞调用
 
 对于每一个处理完的请求,记录access,error日志,记录在磁盘中,也可以通过syslog协议记录在远程机器
@@ -27,6 +27,7 @@ Nginx作为负载均衡,反向代理,把请求通过协议级传输后面的服�
 1.单进程:不适用于生产环境,只适用于开发调试
 2.多进程:生成环境保证Nginx足够健壮,Nginx利用多核的特性
 父进程:Master Process,子进程:cache,worker进程
+
 为什为多进程结构,不是多线程?
 Nginx要保证高可用性,高可靠性.如果使用多线程,线程之间共享同一块地址空间.当一个第三方模块引发一个地址空间导致
 段错误时候,会导致整个nginx进程全部挂掉.采用多进程往往不会出现这个问题
@@ -46,10 +47,10 @@ Nginx采用事件驱动模型,希望每一个worker进程从头到尾,占有一�
 22 Nginx的进程结构实例演示
 master作为父进程启动很多子进程,Nginx父子进程通过信号管理
 ps -ef | grep nginx 看见当前进程id,和进程id
-./nginx -s reload把之前的worker,cache进程优雅退出,然后使用新的配置项,启动新的worker进程
+(1)./nginx -s reload把之前的worker,cache进程优雅退出,然后使用新的配置项,启动新的worker进程
 reload与SIGHUP信号相同
 kill -SIGHUP `cat nginx/logs/nginx.pid`
-向worker进程发送退出信号SIGQUIT,SIGINT,SIGTERM,worker进程退出向父进程master发送SIGCHILD信号,master进程知道子进程
+(2)向worker进程发送退出信号SIGQUIT,SIGINT,SIGTERM,worker进程退出向父进程master发送SIGCHILD信号,master进程知道子进程
 退出了,重启一个worker进程
 
 23 使用信号管理Nginx的父子进程

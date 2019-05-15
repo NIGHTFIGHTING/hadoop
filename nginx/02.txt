@@ -172,3 +172,27 @@ worker_shutdown_timeout最长会等多长时间,master在启动新的woker子进
 
 29 Nginx的事件驱动模型
 -----------------------------------------
+
+WAIT FOR EVENTS ON CONNECTIONS
+等待事件:比如客户端连接nginx,对应epoll_wait方法,nginx处理sleep状态
+当操作系统收到一个TCP建立连接的握手报文,并且处理完握手流程以后,操作系统通知epoll_wait阻塞方法,唤醒nginx的worker进程
+    |
+   \|/
+REVEIVE QUEUE OF NW EVENTS <----- KERNEL
+找操作系统要事件,操作系统把事件放在事件队列中
+    |                               /|\
+   \|/                               |
+PROCESS THE EVENT QUEUE IN CYCLE------
+处理事件循环 
+
+                        No
+IS EVENTS QUEUE EMPTY -------> QUEUE
+事件队列不为空,取出事件,处理事件
+处理事件过程中可能会生成新的事件,比如一个连接新建立,需要添加一个超时时间,默认60s,如果浏览器不像我发送请求,关闭连接
+比如收完完整http请求,可以生成http响应,需要向操作系统写缓冲区,要求操作系统把缓冲区内容发送给浏览器
+
+如果所有时间处理完回到WAIT FOR EVENTS ON CONNECTIONS
+
+一些第三方模块大量运算,处理一个事件非常长,会导致后续队列中大量事件长时间得不到处理,从而引发恶性循环
+大量cpu,nginx任务都消耗在处理连接不正常断开,所以nginx不能容忍第三方模块长时间消耗大量cpu进行计算任务
+比如gzip不会一次使用大量cpu,都是分段适用的

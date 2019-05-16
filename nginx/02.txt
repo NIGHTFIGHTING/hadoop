@@ -236,3 +236,78 @@ nginx的worker进程优先级调的比较高如-19,操作系统给我们分的�
 
 32 同步&异步、阻塞&非阻塞之间的区别
 -----------------------------------------------
+阻塞与非阻塞指操作系统或底层C库方法或者一个系统调用,
+阻塞方法:
+调用这个方法导致一个进程进入sleep状态.
+当前条件不满足情况下,操作系统主动把我的进程切换为另一个进程使用当前CPU
+非阻塞方法:
+不会因为当我们事件片未用完时,把我们进程主动切换掉
+
+同步异步调用方式,编码写我们业务逻辑角度
+nginx除了官方通过javascript同步携代码方式实现,实现非阻塞编码效果.以及openresty基于lua语言使用同步语言,实现
+非阻塞高并发效果
+
+以accept为例
+阻塞调用:使用阻塞socket
+如果监听的port,所对应的accept队列(操作系统已经做好三次握手,建立成功的socket),阻塞方法可能会得到立刻返回,不会被阻塞.
+如果accept队列为空,操作系用会等待三次握手的连接,到达内核中,唤醒accept调用.时间可控,可以设置阻塞socket最长超时时间
+产生主动进程切换
+
+非阻塞调用:使用非阻塞socket
+如果accept队列为空,不等待,立刻返回EAGAIN错误
+如果accept队列不为空,不等待立刻返回,成功间socket从ACCEPT队列中移除并拷贝给进程
+由你的代码决定是否切换新任务
+由你的代码决定,当收到EAGIN错误码,是等一会继续处理这个连接,还是切换到其他任务在处理
+
+(1)nginx作为反向代理特点:考虑上游服务处理能力不足,如果有body的http请求,http先接收完body,在向上游服务器发起连接
+收完header已经知道向哪台上游服务器建立连接.但是先读取body
+表示执行完ngx_http_read_request_body后,再去回调post_handler(ngx_http_upstream_init),
+ngx_http_upstream_init是对上游服务器建立连接方法
+rc = ngx_http_read_request_body(r, ngx_http_upstream_init)
+if (rc >= NGX_HTTP_SPECIAL_RESPONSE) {
+    return tc;
+}
+
+(2)connect没有被满足,没有收到redis发来的响应,connect不会返回,不会阻塞nginx代码
+local client = redis:new()
+client:set_timeout(30000)
+local ok,err = client:connect(ip,port)
+if not ok then
+    ngx.say("failed:", err)
+    return
+end
+
+33 Nginx的模块究竟是什么？
+------------------------------------
+http://nginx.org/en/docs/http/ngx_http_gzip_module.html
+前提编译进Nginx
+提供哪些配置项
+模块合适被使用
+提供哪些变量:Embedded Variables
+./condfigure --with --without --add-module
+确认编译进nginx中,objs/ngx_modules.c,ngx_modules[]包含所有编译间nginx模块
+确认模块提供哪些指令?ngx_command_t包含支持的指令名,表明后面可以跟几个参数,参数为什么样类型
+
+ngx_modult_t定义所有模块顺序,模块有冲突,先生效的模块会阻碍后生效的模块发挥作用
+高内聚:相应独立的功能是在同一个模块代码块中
+抽象:ngx_modult_t里的ngx_command_t定义配置.启停回调方法
+init_master,init_module,init_process,init_thread,exit_thread,exit_process,exit_master
+子模块抽象:http,event,mail,stream
+
+34 Nginx模块的分类
+---------------------------------------------
+ngx_modult_t中变量type标志属于哪一个类型模块
+NGX_CORE_MODULE:核心模块,通过某一类core_module,独立定义出新的子类型模块
+NGX_EVENT_MODULE:所有事件处理,每一类模块存在通用共性部分,会在第一个模块_core关键字
+每一个子类型中,事件模块,_core文件定义所有子类型模块,共有的特性
+NGX_CONF_MODULE:解析nginx的conf文件
+NGX_HTTP_MODULE:ngx_http_core_module,请求处理模块,响应过滤模块(对response的文件做特定处理,对css文件gzip压缩,
+对图片做裁剪,把response做二次处理),upstream相关模块(nginx作为反向/正向代理把请求传给服务做处理)
+NGX_STREAM_MODULE:
+NGX_MAIL_MODULE:
+
+core:nginx核心框架代码
+event:
+http:还会有一些框架代码,复制核心流程,每一个模块都有一个核心模块,定义了http模块工作方式
+http/modules:可有可无1.处理请求生成响应
+stream:

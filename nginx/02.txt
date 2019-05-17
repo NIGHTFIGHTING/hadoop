@@ -320,7 +320,7 @@ http://nginx.org/en/docs/ngx_core_module.html#worker_connections
 这个连接不仅用于客户端连接,也用于上游服务器
 ngx_cycle_t->connections,配置worker_connections默认nginx 512
 read_events,write_events与worker_connections一样大
-配置更过的worker_connections会使用更大内存
+配置更多的worker_connections会使用更大内存
 struct ngx_connections {
     ngx_event_t* read; // 读事件
     ngx_event_t* write; // 写事件
@@ -339,7 +339,7 @@ client_header_timeout 60s
 [$request_length:$bytes_sent]
 
 配置高并发nginx需要配置并发足够大,每个connection对应的event会消耗一定的内存,
-nginx的一些成员可以与内置变量相对应bytes_setnd,body_bytes_sent
+nginx的一些成员可以与内置变量相对应bytes_sent,body_bytes_sent
 
 36 内存池对性能的影响
 ----------------------------------------------------
@@ -374,3 +374,51 @@ list:lua代码设计到我们应用代码,易超出10m限制,采用lru淘汰,最
 
 38 用好共享内存的工具 Slab管理器
 -----------------------------------------------
+
+Bestfit:最多两倍内存消耗
+适合小对象,避免碎片,避免重复初始化
+
+共享内存可以使用rbtree,list数据结构,每一个rbtree有很多节点,每个节点都需要分配内存存放.怎样把一整块共享内存,切割成小块,给红黑树上每一个节点使用
+
+stable内存管理用于共享内存,把共享内存分为许多页面i,32,64,128字节,这些slot以乘2方式向上增长.
+51会分配小于它最大的环节64字节,存在内存浪费
+
+如果我们分配内存非常小,小于一个页面大小,很少有碎片.没分配一块内存就是沿着还未分配空白的地方继续使用,当一个页面使用完,拿一个空闲页面继续给此类slot大小内存继续使用
+一些数据结构固定的,并且需要初始化,避免重复初始化
+用于openresty,limit_req,limit_conn
+ngx_slab_stat:统计slat使用状态
+tegine/modules/ngx_slab_stat
+
+http://tengine.taobao.org/download.html
+./configure --add-module=/root/tengine-2.3.0/modules/ngx_slab_stat
+
+curl localhost:80/set
+curl localhost:80/get
+curl localhost:80/slab_stat
+
+10m是一个非常大一个共享内存,划分为很多页面,对于比较小的32Bytes,一个页面可以有128个
+
+
+39 哈希表的max_size与bucket_size如何配置
+----------------------------------------------------
+数组:ngx_array_t多块连续内存,每块连续内存可以存放许多元素
+链表:ngx_list_t
+队列:ngx_queue_t
+哈希表:
+每一个元素会顺序放在一块连续内存中,每一个key通过hash函数映射的
+应用场景不同,静态不变的内容,运行过程中,不会出现插入删除.nginx刚启动可以确认hash表有多少个元素.
+Max size控制最大hash表bucket个数,不是实际上hash表bucket个数.作用限制最大化的使用
+stream/http:variables变量(在模块编译的时候确定了),map,http proxy(定义在配置文件中header做hash)
+Bucket size有默认值cpu cache line对齐,主流cpu有l1,l2,l3缓存,再取主存内存上数据时,
+主流cpu取主存字节数是cpu cache line(64Bytes),为什么hash表向64字节对齐
+假设hash表每一个bucket是59字节,如果是紧密排列在一起,取第一个元素取1次,多取1Bytes,在取第二个元素,
+需要访问主存两次,包含第一个64字节的64Bytes,第二个单元的58字节.
+为了避免去两次,nginx代码做了向上对齐
+bucket size:如果配置的不是cpu cache line,比如分配70字节,向上配置128字节
+            有可能尽量不查过64Bytes,以减少cpu访问每个hash表次数
+
+哈希表:
+基数数:自平衡平衡二叉树,key只能是整形,geo模块使用
+
+40 Nginx中最常用的容器 红黑树
+--------------------------------------------------------

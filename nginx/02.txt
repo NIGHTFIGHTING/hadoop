@@ -309,5 +309,68 @@ NGX_MAIL_MODULE:
 core:nginx核心框架代码
 event:
 http:还会有一些框架代码,复制核心流程,每一个模块都有一个核心模块,定义了http模块工作方式
-http/modules:可有可无1.处理请求生成响应
+http/modules:可有可无1.处理请求生成响应2.响应过滤,文件名有filter3.与上游服务器发生交互,文件名upstream4.为生成响应工作
 stream:
+看一下第三方模块属于哪一个模块
+
+35 Nginx如何通过连接池处理网络请求
+-----------------------------------------------
+每个worker进程都含有ngx_cycle_t结构
+http://nginx.org/en/docs/ngx_core_module.html#worker_connections
+这个连接不仅用于客户端连接,也用于上游服务器
+ngx_cycle_t->connections,配置worker_connections默认nginx 512
+read_events,write_events与worker_connections一样大
+配置更过的worker_connections会使用更大内存
+struct ngx_connections {
+    ngx_event_t* read; // 读事件
+    ngx_event_t* write; // 写事件
+    ngx_recv_pt recv;
+    ngx_recv_pt send; // 抽象解耦OS底层方法
+    off_t sent; // 这个连接上已经发送多少字节 看做unsigned int, 内置变量bytes_sent变量(ngx_http_core_module)
+};232+96*2
+struct ngx_events {
+    ngx_evnet_handler_pt handler; // 事件回调
+    ngx_rbtre_node_t timer; // http请求读写超时,nginx实现超时定时器
+    ngx_queue_t queue; // 多个事件形成队列
+};96字节
+
+http://nginx.org/en/docs/http/ngx_http_core_module.html
+client_header_timeout 60s
+[$request_length:$bytes_sent]
+
+配置高并发nginx需要配置并发足够大,每个connection对应的event会消耗一定的内存,
+nginx的一些成员可以与内置变量相对应bytes_setnd,body_bytes_sent
+
+36 内存池对性能的影响
+----------------------------------------------------
+
+基础同步工具:信号,共享内存
+nginx的worker进行数据同步使用共享内存,比如打开一块共享内存10m,0~10m之间,多个worker之间可以同时访问他,包括
+读取和写入.多个worker同时操作一块内存存在竞争关系,
+
+信号量:导致进程进入休眠状态,进程主动切换
+加入这把锁,锁住一扇门,worker进程1拿到这把锁进入屋里,worker进程2试图拿锁,敲门里面有人了,会就地休息,
+等待worker进程1出来通知他
+
+自旋锁:当这个锁的条件,没有满足.块内存现在被1号worker使用,2号进程获取锁的时候,只要1号进程没有释放锁
+,2号进程会一直请求这把锁
+worker进程2发现门里有worker进程1,会持续的敲门
+所以使用自旋锁的nginx模块,需要快速的使用共享内存.快速使用锁释放锁.一旦有第三方模块不遵守,导致出现死锁,或性能下降
+
+一整块共享内存给多个worker同时使用的,在模块中手动的编写分配把这些给到不同对象,是非常繁琐的->slab内存管理器
+
+限速,流控不能容忍在内存中做.比如一个worker进程对某一个用户出发流控,其他worker进程还不知道,只能在共享内存中做
+,limit_conn,limit_req,http cache,ssl使用rbtree,插入删除速度很快(对一个客户端限速,速度达到了,把客户端从
+限速数据结构中移除)
+
+单链表:把需要共享的元素串起来ngx_http_upstream_zone_module,
+
+lua_shared_dict:
+rbtree:使用红黑树保存每一个key->value;因为10m是有限的,
+list:lua代码设计到我们应用代码,易超出10m限制,采用lru淘汰,最早set/get
+长时间不用的节点优先被淘汰
+
+共享内存是跨worker通讯,一个业务逻辑在多个worker间共同生效,集群流控
+
+38 用好共享内存的工具 Slab管理器
+-----------------------------------------------

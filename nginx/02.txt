@@ -415,10 +415,45 @@ Bucket size有默认值cpu cache line对齐,主流cpu有l1,l2,l3缓存,再取主
 需要访问主存两次,包含第一个64字节的64Bytes,第二个单元的58字节.
 为了避免去两次,nginx代码做了向上对齐
 bucket size:如果配置的不是cpu cache line,比如分配70字节,向上配置128字节
-            有可能尽量不查过64Bytes,以减少cpu访问每个hash表次数
+            有可能尽量不超过64Bytes,以减少cpu访问每个hash表次数
+
+遍历复杂度:buckets数量
 
 哈希表:
 基数数:自平衡平衡二叉树,key只能是整形,geo模块使用
 
 40 Nginx中最常用的容器 红黑树
 --------------------------------------------------------
+nginx多个worker间进行进行间通信,经常使用红黑树管理许多对象.nginx内存也会使用rbtree
+ngx_rbtree_t:自平衡二叉查找树,高度不会超过2被log(n),增删改查算法复杂度O(log(n)),遍历复杂度O(n)
+
+内存中使用红黑树:ngx_conf_module(cofig_dump_rbtree),ngx_event_timer_rbtree定时器,
+基于共享内存使用红黑树:ngx_http_file_cache,ngx_http_geo_module,ngx_limit_conn_module,ngx_http_limit_req_module
+                       ngx_http_lua_shdict:ngx.shared.dict LRU链表
+
+
+41 使用动态模块来提升运维效率
+-------------------------------------------------------
+
+ngxin动态模块,nginx升级减少编译环节
+yum -y install gd-devel
+
+静态库:把所有源代码编译进最终的binary可执行文件中
+动态库:bianry文件只保留它的位置(地址),当需要动态库功能时,有nginx可执行文件调用动态库.当我仅仅需求升级某个模块功能时,
+特别当nginx编译大量第三方模块,仅仅重新编译这个动态库,而不用替换bianry文件.新的动态库替换,新的nginx reload使用新的模块功能
+
+(1)Configure加入动态模块./configure --prefix=/home/centos/nginx1 --with-http_image_filter_module=dynamic,不是所有nginx模块都可以加入nginx中
+(2)编译进binary
+(3)启动时初始化模块数组,读取ngx_modules数组,发现使用一个动态模块
+(4)读取load_module配置,nginx.conf指明动态模块路径
+(5)打开动态库并加入模块数组
+(6)基于模块数组开始初始化
+
+(1)load_module modules/ngx_http_image_filter_module.so;
+(2)        location / { 
+            root   test;
+            image_filter resize 15 10; 
+        }
+(3)./nginx -s reload
+(4)curl http://192.168.244.131:8080/hdfs-write.png
+nginx在编译太多模块,参数及其复杂场景,可以减少出错概率

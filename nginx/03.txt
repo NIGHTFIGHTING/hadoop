@@ -163,6 +163,9 @@ Context http,server,location
 (2)*泛域名:仅支持在最前或者最后 server_name *.tarhui.tech
 (3)正则表达式:加~前缀 server_name www.taohui.tech ~^www\d+\.taohui\.tech;
 (4)用正则表达式创建变量:用小括号()
+(5).taohui.tech可以匹配taohui.tech *.taohui.tech
+   _匹配所有
+   "" 匹配没有传递Host头部
 server {
     server_name ~^(www\.)?(.+)$;
     location / { root /sites/$2; }

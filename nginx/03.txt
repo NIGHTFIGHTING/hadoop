@@ -120,3 +120,71 @@ HTTP模块
 
 45 - Nginx中的正则表达式
 -------------------------------------
+
+$>wget https://ftp.pcre.org/pub/pcre/pcre-8.13.tar.gz
+$>tar -xzvf  pcre-8.13.tar.gz
+$>cd pcre-8.13 && ./configure --enable-utf8 && make
+$>./pcretest
+示例:\转义符号,取消元字符的特殊含义,()分组与取值
+原始url:/admin/website/article/35/change/uploads/party/5.jpg
+转换后的url:/static/uploads/party/5.jpg
+匹配原始url的正则表达式:
+/^\/admin\/website\/article\/(\d+)\/change\/uploads\/(\w+)\/(\w+)\.(png|jpg|gif|jpeg|bmp)$/
+
+rewrite ^/admin/website/article/(d+)/change/uploads/(w+)/(w+).(png|jpg|gif|jpeg|bmp)$
+ /static/uploads/$2/$3.$4 last;
+
+location,server_name,rewrite指令如虎添翼
+
+
+46 - 如何找到处理请求的server指令块
+--------------------------------------------------
+
+在处理11个http模块请求前,现决定哪一个server块被使用
+
+主域名作用:server_name后面有多个域名,第一个是主域名,server_name_in_redict off时候主域名不生效
+
+servername_test.conf
+server {
+    server_name primary.taohui.tech second.taohui.tech
+    server_name_in_redirect off;
+
+    return 302 /redict;
+}
+
+$>curl second.taohui.tech -I (server_name_in_redict off)
+$>显示Location: http://second.taohui.tech/redict
+$>curl second.taohui.tech -I (server_name_in_redict on)
+$>显示Location: http://primary.taohui.tech/redict
+
+server_name指令:
+(1)指令后可以跟多个域名,第一个是主域名
+Context http,server,location
+(2)*泛域名:仅支持在最前或者最后 server_name *.tarhui.tech
+(3)正则表达式:加~前缀 server_name www.taohui.tech ~^www\d+\.taohui\.tech;
+(4)用正则表达式创建变量:用小括号()
+server {
+    server_name ~^(www\.)?(.+)$;
+    location / { root /sites/$2; }
+}
+
+server {
+    server_name ~^(www\.)?(?<domain>.+)$;
+    location / { rppt/sites/$domain; }
+}
+
+server匹配顺序
+(1)精确匹配
+(2)*在前的泛域名
+(3)*在后的泛域名
+(4)按文件中的顺序匹配正则表达式域名
+(5)default server
+    没有明确指定,第1个server块
+    listen指定default
+
+当ngx框架取到http的host头部时,可以用这个值与server块下server_name进行匹配.
+按照相应顺序匹配一个server块时,这个server块下的所有http模块的指令就可以使用了
+
+
+47 - 详解HTTP请求的11个阶段
+----------------------------------------

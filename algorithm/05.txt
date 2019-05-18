@@ -1,0 +1,8 @@
+array:连续内存,访问速度O(1)
+      inserting:O(n),插入最后一个O(1)
+      deleting:平均O(n)
+
+改善插入,删除
+Linked List:
+单链表:查找O(n),insert O(1) delete O(1)
+双链表:既有前驱,也有后继

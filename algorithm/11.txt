@@ -1,0 +1,9 @@
+
+Largest { k= 3
+        { [4, 5, 8, 2]
+1.k Max = >Sorted
+   每次新来一个数,进行一次排序,剔除低k+1最小的 
+   N klog(k)
+
+2. Min Heap
+   size = k

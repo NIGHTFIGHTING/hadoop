@@ -191,3 +191,54 @@ server匹配顺序
 
 47 - 详解HTTP请求的11个阶段
 ----------------------------------------
+
+当ngx接收完用户请求的header时候,按照11个阶段的顺序,一次调用每个阶段中的http模块.
+当然每个阶段可能有多个http模块,他们之前的顺序也很重要
+
+48 - 11个阶段的顺序处理
+------------------------------------------
+http请求进入这11个阶段,每个阶段可能有0个或者多个http模块.如果某个模块不在把请求向下传递,
+后面的模块得不到执行
+同一个阶段的多个模块,不一定都有机会执行到,可能会有前一个模块把请求传个下一个阶段中模块处理
+
+(1)ngx_modules.c中char *ngx_module_names[]数组顺序,看出同一个阶段每个模块执行顺序相反
+(2)rewrite,find_config,rewrite是ngx框架执行,第三方模块没有机会执行
+如果access直接会跳到try_files模块阶段
+index执行直接跳到,log模块阶段
+
+
+49 - postread阶段：获取真实客户端地址的realip模块
+-----------------------------------------------------
+
+为后续模块实现限速,限流
+(1)TCP连接四元组(src ip,src,port, dst ip,dst port)
+(2)HTTP头部X-Forward-For用于传递IP
+(3)HTTP头部X-Real-IP用于传递用户IP
+(4)网络中存在许多反向代理
+
+用户(路由器分配一个内网IP:192.168.0.x)
+ADSL(运营商分配公网IP:115.204.33.1)
+CDN(网站CDN,没有缓存我要的资源,然后回原,IP地址:1.1.1.1) []
+某反向代理(IP地址2.2.2.2) [X-Forwarded-For:115.204.33.1 X-Real-IP:115.204.33.1]
+Nginx remote_addr变量:2.2.2.2,用户地址:115.204.33.1[X-Forwarded-For:115.204.33.1 1.1.1.1 X-Real-IP:115.204.33.1]
+
+拿到真实用户IP后如何使用?基于变量!!!
+如binary_remote_addr,remote_addr这样的变量
+(原来直接与ngx产生client连接的地址,但是经过realip模块改为X-Forwarded-For里面地址)
+其值就为真是的IP!这样做连接限制(limit_conn模块)才有意义!
+这也是为什limit_conn模块在preaccess阶段,而不在postread阶段
+
+
+默认不会编译进Nginx
+  --with-http_realip_module  enable ngx_http_realip_module
+变量:realip_remote_addr,realip_remote_port
+realip模块的指令:
+(1)set_real_ip_from:只有是从CDN,或者是内网过来的IP地址,认为是可信的,所以
+从他们的X-Forwarded-For取真正IP.
+对于什么样的tcp连接的source ip,才能做替换remote_add变量
+(2)real_ip_header field | X-Real-IP | X-Forwarded-For |proxy_protocol
+表示real ip从哪里面取出
+(3)real_ip_recursive on | off;
+环回地址
+Default real_ip_recursive off;
+如果打开,会把X-Forwarded-For最后的地址,和client地址相同,把它pass,取上一个地址

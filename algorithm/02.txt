@@ -1,0 +1,12 @@
+异类
+
+精#通一个领域
+
+切题四件套
+Clarification明确题目的意思
+Possible solutions 弄出所有题目的解决,找到最优解
+    compare(time/space)
+    optimal(加强)
+
+Coding(多写)
+Test cases

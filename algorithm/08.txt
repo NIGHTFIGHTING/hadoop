@@ -1,0 +1,40 @@
+
+http://bigocheatsheet.com/
+
+string,大中小括号=>合法?
+1.左=>push
+2.右=>peek
+3.stack empty
+
+time O(1)*n
+speac O(n)
+
+#include <map>
+#include <stack>
+class Solution {
+public:
+    bool isValid(string s) {
+        std::map<char ,char> mapping;
+        mapping['}'] = '{';
+        mapping[']'] = '[';
+        mapping[')'] = '(';
+        stack<char> zhan;
+        for (int i = 0; i < s.size(); ++i) {
+             char ch = (s[i]);
+             if (mapping.find(ch) == mapping.end()) {
+                zhan.push(ch);
+                continue;
+            }   
+            if (!zhan.empty() && zhan.top() != mapping[ch]) {
+                return false;
+            } else if (zhan.empty()) {
+                return false;
+            } 
+            zhan.pop();
+        }
+        if (zhan.empty()) {
+            return true;
+        }
+        return false;
+    }   
+};

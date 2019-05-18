@@ -1,2 +1,122 @@
 42 冲突的配置指令以谁为准？
 ---------------------------------------
+
+(1)当一个指令出现在多个配置块中时,值是冲突的以谁为准
+(2)没有这条指令,却生效了,怎样的机制?
+(3)第三方模块不遵循官方配置规则,如何判断指令生效,或者冲突以谁为准
+
+指令在多个block下可以合并:指令的合并
+(1)值指令:存储配置项的值(解析配置时,对这个directive下,存储当时配置的值)
+root,access_log,gzip可以合并
+(2)动作类指令:指定行为
+不可以合并,rewrite,proxy_pass
+生效阶段:server_rewrite,rewrite(只有http的rewrite模块可以提供)
+         content阶段(反向代理,5个content模块)
+
+存储值的指令继承规则:向上覆盖
+(1)子配置不存在时,直接使用父配置块
+(2)子配置存在时,直接覆盖父配置块
+
+HTTP模块合并配置的实现?
+指令在那个block块下生效?
+指令允许出现在那些块下?
+在server块内生效,从http向server合并指令:char *(*merge_srv_conf)(ngx_conf_t* cf, void* prev, void* conf);
+配置缓存在内存:char *(*merge_loc_conf)(ngx_conf_t* cf,void* prev, void* conf)
+
+static ngx_command_t  ngx_http_referer_commands[] = {
+
+    { ngx_string("valid_referers"),
+      NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_1MORE,
+      ngx_http_valid_referers,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      0,
+      NULL },
+
+    { ngx_string("referer_hash_max_size"),
+      NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+      ngx_conf_set_num_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_referer_conf_t, referer_hash_max_size),
+      NULL },
+
+    { ngx_string("referer_hash_bucket_size"),
+      NGX_HTTP_SRV_CONF|NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+      ngx_conf_set_num_slot,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      offsetof(ngx_http_referer_conf_t, referer_hash_bucket_size),
+      NULL },
+
+      ngx_null_command
+};
+
+static ngx_http_module_t  ngx_http_referer_module_ctx = {
+ngx_http_referer_add_variables,        /* preconfiguration */
+NULL,                                  /* postconfiguration */
+
+NULL,                                  /* create main configuration */
+NULL,                                  /* init main configuration */
+
+NULL,                                  /* create server configuration */
+NULL,                                  /* merge server configuration */
+
+ngx_http_referer_create_conf,          /* create location configuration */
+ngx_http_referer_merge_conf            /* merge location configuration */
+};
+
+
+43 - Listen指令的用法
+-------------------------------------
+从一个连接建立起,到收到请求
+
+
+44 - 处理HTTP请求头部的流程
+-------------------------------------
+
+http模块处理请求之前,需要http框架都client建立好连接.然后接受http请求发过来的line(方法,url),
+接受所有header,根据header信息才能决定使用哪些配置块,让http怎样处理请求
+
+操作系统内核:                                   事件模块                         HTTP模块
+client->SYN->server;
+client<-SYN+ACK<-server;
+client->ACK->server          负载均衡选中CPU上的worker
+每个worker进程都监听80/443端口------>
+                                       通过epoll_wait返回建立连接的句柄
+                                       读事件?调用accept,分配连接内存池
+                                       connection_pool_size 512     ------->    
+
+client->DATA->server
+client<-ACK<-server
+
+HTTP模块
+(1)ngx_http_init_connection设置回调方法                
+(2)新建立连接读事件添加到epoll中,epoll_ctl方法
+(3)添加超时定时器,表示如果60s没有收到请求超时,client_header_timeout 60s
+
+(1)ngx_http_wait_request_hadler分配内存,ngx的data读取到用户态中,
+内存从哪里分?从连接内存池子分
+分多大?分配1k
+如果url/header超过1k?
+
+处理只把数据收到内存
+处理请求需要做上下文分析,分析协议,分析header
+
+接收URI
+(1)分配请求内存池(request_pool_size:4k)
+为什么分配4k?请求的上下文设计到业务,如果分配很小,需要请求内存池不断扩充
+当分配内存次数变多,性能会下降
+(2)状态机解析请求行(方法名,url,可能有url很大超过刚才分配的1K)
+(3)分配大内存解决url太长,large_client_header_buffets:4 8k
+先分配8k,把刚才1k内容拷过来,剩下7k接收http的url
+如果8k没有接收完,接收16k,最大32k
+(4)状态机解析请求行
+(5)标示url.如果完整解析请求行,解析到\r\n,ngx很多变量不是复制一份,而是一个指针指向请求行,
+
+接收header(cookie,host都很长)
+(1)状态机解析header
+(2)分配大内存,large_client_header_buffers:4 8k
+(3)标识header,确定哪一个server块处理请求.
+(3)移除超时定时器,client_header_timeout:60s
+(4)开始11阶段的http请求处理
+
+45 - Nginx中的正则表达式
+-------------------------------------

@@ -330,9 +330,6 @@ Context: server,location
 (1)当server下的rewrite指令执行完成,根据请求的url根据location后面相对应的url前缀,或者正则表达式
 进行匹配,匹配完成可以确定哪一个location,对这个请求处理
 
-55 - preaccess阶段：对连接做限制的limit_conn模块
-------------------------------------------------------
-
 (2)
 Syntax:    location [ = | ~ | ~* | ^~ ] uri { ... }
 location @name { ... }
@@ -349,7 +346,7 @@ Context:    http, server
 前缀字符串
 [1]常规
 [2]=:精确
-[3]与这条url前缀匹配上后,不在进行正则表达式匹配
+[3]^~与这条url前缀匹配上后,不在进行正则表达式匹配
 正则表达式
 
 (4)ngx内部有一颗二叉树,存储所有前缀字符串
@@ -380,3 +377,32 @@ $>curl 127.0.0.1:8083/test1/Test2/
 
 54 - find_config阶段：找到处理请求的location指令块
 ----------------------------------------------------------
+
+55 - preaccess阶段：对连接做限制的limit_conn模块
+------------------------------------------------------
+
+如何限制每个客户端的并发连接数?
+ngx_http_limit_conn_module模块
+生效阶段:NGX_HTTP_PREACCESS_PHASE阶段
+模块:http_limit_conn_module
+默认编译近nginx,通过--without-http_limit_conn_module禁用
+生效范围:全部worker进程(基于共享内存)
+         进入preaccess阶段前不生效
+         限制的有效性取决于key的设计:依赖postread阶段的realip模块取得真实ip
+
+Syntax:	limit_conn_zone key zone=name:size;
+Default:	—
+Context:	http
+
+这个key的并发连接数量
+Syntax:	limit_conn zone number;
+Default:	—
+Context:	http, server, location
+
+
+当ngx作为资源服务器为用户提供服务时,限制用户同时发起的并发连接数常用功能.limit_conn提供这个功能
+设计好它的key是它的关键
+
+
+56 - preaccess阶段：对请求做限制的limit_req模块
+-------------------------------------------------------

@@ -330,6 +330,9 @@ Context: server,location
 (1)当server下的rewrite指令执行完成,根据请求的url根据location后面相对应的url前缀,或者正则表达式
 进行匹配,匹配完成可以确定哪一个location,对这个请求处理
 
+55 - preaccess阶段：对连接做限制的limit_conn模块
+------------------------------------------------------
+
 (2)
 Syntax:    location [ = | ~ | ~* | ^~ ] uri { ... }
 location @name { ... }
@@ -373,3 +376,7 @@ $>curl 127.0.0.1:8083/test1/Test2/
 
 1.location匹配规则
 2.当location数量很多,怎样通过禁止正则表达式匹配/等于号等等,对于非常频繁发起的请求减少做location匹配次数
+
+
+54 - find_config阶段：找到处理请求的location指令块
+----------------------------------------------------------

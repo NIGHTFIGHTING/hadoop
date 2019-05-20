@@ -235,7 +235,7 @@ Nginx remote_addr变量:2.2.2.2,用户地址:115.204.33.1[X-Forwarded-For:115.20
 realip模块的指令:
 (1)set_real_ip_from:只有是从CDN,或者是内网过来的IP地址,认为是可信的,所以
 从他们的X-Forwarded-For取真正IP.
-对于什么样的tcp连接的source ip,才能做替换remote_add变量
+对于什么样的tcp连接的source ip,才能做替换remote_addr变量
 (2)real_ip_header field | X-Real-IP | X-Forwarded-For |proxy_protocol
 表示real ip从哪里面取出
 (3)real_ip_recursive on | off;
@@ -316,3 +316,60 @@ Syntax: rewrite_log on | off;
 Default: rewrite_log off;
 Context: http,server,location,if
 
+
+52 - rewrite阶段的rewrite模块：条件判断
+----------------------------------------------------
+Syntax: if(condition) {...}
+Default: --
+Context: server,location
+规则:条件condition为真,则执行大括号内的指令;遵循值指令的继承规则
+
+53 - find_config阶段：找到处理请求的location指令块
+----------------------------------------------------
+
+(1)当server下的rewrite指令执行完成,根据请求的url根据location后面相对应的url前缀,或者正则表达式
+进行匹配,匹配完成可以确定哪一个location,对这个请求处理
+
+(2)
+Syntax:    location [ = | ~ | ~* | ^~ ] uri { ... }
+location @name { ... }
+Default:    —
+Context:    server, location
+
+Syntax:    merge_slashes on | off;
+Default:    
+merge_slashes on;
+Context:    http, server
+把两个\\合并为一个\,base64编码的时候可以禁用
+
+(3)location匹配规则
+前缀字符串
+[1]常规
+[2]=:精确
+[3]与这条url前缀匹配上后,不在进行正则表达式匹配
+正则表达式
+
+(4)ngx内部有一颗二叉树,存储所有前缀字符串
+[1]匹配上=字符串,使用匹配上的=精确匹配location
+[2]匹配^~字符串,使用匹配上的^~字符串location
+[3]记住最长匹配的前缀字符串location
+   按照nginx.conf中的顺序依次匹配正则表达式location
+   匹配上->使用匹配上的正则表达式
+   所有正则都不匹配->使用最长匹配的前缀字符串loction
+
+$>curl 127.0.0.1:8083/Test1
+ = /Test1 exact match!
+$>curl 127.0.0.1:8083/Test1/
+ ^~ /Test1/ stop regular expressions match!
+$>curl 127.0.0.1:8083/Test1/Test
+ ^~ /Test1/ stop regular expressions match!
+$>curl 127.0.0.1:8083/Test1/Test2
+ ~* /Test1/(\w+) longest regular expressions match!
+ 因为配置中location /Test1/Test2 前面没有禁止正则匹配^~
+$>curl 127.0.0.1:8083/Test1/Test2/
+ /Test1/Test2 longest prefix string match! 
+$>curl 127.0.0.1:8083/test1/Test2/
+ ~* /Test1/(\w+) longest regular expressions match!
+
+1.location匹配规则
+2.当location数量很多,怎样通过禁止正则表达式匹配/等于号等等,对于非常频繁发起的请求减少做location匹配次数

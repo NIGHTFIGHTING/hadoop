@@ -225,7 +225,7 @@ Nginx remote_addr变量:2.2.2.2,用户地址:115.204.33.1[X-Forwarded-For:115.20
 拿到真实用户IP后如何使用?基于变量!!!
 如binary_remote_addr,remote_addr这样的变量
 (原来直接与ngx产生client连接的地址,但是经过realip模块改为X-Forwarded-For里面地址)
-其值就为真是的IP!这样做连接限制(limit_conn模块)才有意义!
+其值就为真实的IP!这样做连接限制(limit_conn模块)才有意义!
 这也是为什limit_conn模块在preaccess阶段,而不在postread阶段
 
 
@@ -242,3 +242,48 @@ realip模块的指令:
 环回地址
 Default real_ip_recursive off;
 如果打开,会把X-Forwarded-For最后的地址,和client地址相同,把它pass,取上一个地址
+$>curl -H "X-Forwarded-For: 1.1.1.1,192.168.244.143 X-Real-IP: 1.0.0.0" 192.168.244.143
+$>Client real ip: 192.168.244.143
+
+real_ip_recursive on;设置
+$>curl -H "X-Forwarded-For: 1.1.1.1,192.168.244.143 X-Real-IP: 1.0.0.0" 192.168.244.143
+$>Client real ip: 192.168.244.143
+
+因为处于postread阶段可以得到未经过处理的X-Forwarded-For/X-Real-IP里面的用户地址
+
+50 - rewrite阶段的rewrite模块：return指令
+-----------------------------------------------
+http rewrite模块生成的return指令
+
+Syntax:return code [text]    // text部分作为body
+       return code URL    // URL作为重定向
+       return URL
+
+Default: --
+Context： server,location,if
+返回状态码:
+HTTP 1.0标准
+444:ngx立刻关闭连接,不会向用户返回内容
+301:http1.0永久重定向
+302:临时重定向,禁止被缓存
+返回302浏览器不会对这次行为重定向.本来访问a,ngx给了一个b,不会做重定向.
+下次访问a,再给重定向b,再去访问b结果
+HTTP1.1标准
+303:临时重定向,允许改变方法,禁止被缓存
+307:临时定向,不允许改变方法,禁止被缓存
+308:永久重定向,不允许改变方法
+
+rewrite:return指令与error_page
+Syntax:error_page code ...[=[response]]uri;
+Default:-
+C ontext:http,server,location,if inlocation
+
+server与location块下的return指令关系?
+执行server块下的return指令
+
+return与error_page指令的关系?
+执行server块下的return指令返回
+
+
+51 - rewrite阶段的rewrite模块：重写URL
+-----------------------------------------------------

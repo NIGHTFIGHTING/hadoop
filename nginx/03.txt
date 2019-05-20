@@ -287,3 +287,32 @@ return与error_page指令的关系?
 
 51 - rewrite阶段的rewrite模块：重写URL
 -----------------------------------------------------
+
+Syntax: rewrite regex replacement[flag]
+Default: -
+Context: server,location,if
+(1)将regex指令的url替换成replacement这个新的url
+    --可以使用正则表达式及变量提取
+(2)当replacement以http://或者https://或者$schema开头,则直接返回302重定向
+(3)替换后的url根据flag指定的方式进行处理
+   [1]last:用replacement这个URI进行新的loaction匹配
+   [2]break:break指令停止当前脚本指令的执行,等价于独立的break指令
+   [3]redirect:返回302重定向
+   [4]permanent:返回301重定向
+
+
+curl localhost:8082/first/3.txt
+curl localhost:8082/second/3.txt
+curl localhost:8082/third/3.txt
+
+http://192.168.244.131:8082/redirect1/index.html
+http://192.168.244.131:8082/redirect2/index.html
+http://192.168.244.131:8082/redirect3/index.html
+http://192.168.244.131:8082/redirect4/index.html
+
+rewrite行为记入error日志
+------------------------------------------------------
+Syntax: rewrite_log on | off;
+Default: rewrite_log off;
+Context: http,server,location,if
+

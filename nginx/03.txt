@@ -390,14 +390,14 @@ ngx_http_limit_conn_module模块
          进入preaccess阶段前不生效
          限制的有效性取决于key的设计:依赖postread阶段的realip模块取得真实ip
 
-Syntax:	limit_conn_zone key zone=name:size;
-Default:	—
-Context:	http
+Syntax:    limit_conn_zone key zone=name:size;
+Default:    —
+Context:    http
 
 这个key的并发连接数量
-Syntax:	limit_conn zone number;
-Default:	—
-Context:	http, server, location
+Syntax:    limit_conn zone number;
+Default:    —
+Context:    http, server, location
 
 
 当ngx作为资源服务器为用户提供服务时,限制用户同时发起的并发连接数常用功能.limit_conn提供这个功能
@@ -406,3 +406,63 @@ Context:	http, server, location
 
 56 - preaccess阶段：对请求做限制的limit_req模块
 -------------------------------------------------------
+如何限制每个客户端的并发连接数?
+ngx_http_limit_conn_module模块
+生效阶段:NGX_HTTP_PREACCESS_PHASE阶段
+模块:http_limit_conn_module
+默认编译近nginx,通过--without-http_limit_conn_module禁用
+生效范围:全部worker进程(基于共享内存)
+         进入preaccess阶段前不生效
+         限制的有效性取决于key的设计:依赖postread阶段的realip模块取得真实ip
+
+
+Syntax:    limit_req_zone key zone=name:size rate=rate [sync];
+Default:    —
+Context:    http
+
+Syntax:    limit_req zone=name [burst=number] [nodelay | delay=number];
+Default:    —
+Context:    http, server, location
+nodelay表示,burst里面的请求也会返回error
+
+limit_req已经向用户拒绝了,limit_conn没有机会执行
+
+57 - access阶段：对ip做限制的access模块
+-----------------------------------------------------------------------
+
+access控制请求是否可以继续向下访问
+问题:如何限制某些IP地方的访问?
+ngx_http_access_module模块
+生效阶段:NGX_HTTP_ACCESS_PHASE
+模块:http_access_module
+默认编译进ngx,通过--without-http_access_module禁用
+生效范围:进入access阶段前不生效
+虽然deny address,对某些ip做限制,limit_req,limit_conn还是不会生效
+
+Syntax:    allow address | CIDR | unix: | all;
+Default:    —
+Context:    http, server, location, limit_except
+
+Syntax:    deny address | CIDR | unix: | all;
+Default:    —
+Context:    http, server, location, limit_except
+
+顺序执行的,当满足一条后,不需要向后执行
+access控制用户访问的方法,对于内网中,我们相应的企业服务访问ngx
+
+58 - access阶段：对用户名密码做限制的auth_basic模块
+
+RFC2617:HTTP Basic Authentication
+校验用户名密码是否匹配,来决定是否拒绝请求访问
+client->ngx
+client<--ngx:WWW-Authenticate
+浏览器会弹出用户名密码
+浏览器会以明文的方式发送给ngx,使用https可以保证安全性
+
+生成工具htpasswd
+httpd-tools,htpasswd -c file -b user pass
+htpasswd -bc file user pass
+文件格式:comment
+name1:password1
+name2:password2:comment
+name2:password3

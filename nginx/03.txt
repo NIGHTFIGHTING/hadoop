@@ -485,3 +485,78 @@ name2:password3
 
 60 - access阶段的satisfy指令
 ------------------------------------------
+限制所有access阶段模块的satisfy指令
+access阶段的模块:
+access模块
+auth_basic模块
+auth_request模块
+其他模块
+
+(1)如果有return指令,access阶段会生效么?
+access肯定不会生效,因为return在rewrite阶段
+(2)多个access模块的顺序有影响么?
+&ngx_http_auth_requset_module,
+&ngx_http_auth_basic_module,
+&ngx_http_access_module
+有影响
+(3)输对密码,下面可以访问到文件吗?
+location / {
+    satisfy any;
+    auth_basic "test auth_basic";
+    auth_basic_user_file examples/auth.pass;
+    deny all;
+}
+可以访问到文件
+
+(4)如果把deny all提到auth_basic之前呢?
+&ngx_http_auth_requset_module,
+&ngx_http_auth_basic_module,
+&ngx_http_access_module
+在这里配置指令的顺序无关紧要,模块间的顺序决定的
+
+(5)如果改为allow all,有机会输入密码吗?
+location / {
+    satisfy any;
+    auth_basic "test auth_basic";
+    auth_basic_user_file examples/auth.pass;
+    allow all;
+}
+
+satisfy any表示任意一个模块同意就可以了,allow all是access模块的,先于auth_basic模块执行
+allow all已经同意了,没有机会去输入用户名密码了
+
+statisfy指令对于控制acess模块行为,控制请求访问权限
+
+61.precontent阶段：按序访问资源的try_files模块
+-------------------------------------------------------
+
+Syntax: try_files file ... uri;
+        try_files file ... =code;
+Default:-
+Context:server, location
+模块:ngx_http_try_files_module模块
+功能:依次试图访问多个url对应的文件(由root或者alias指令指定),当文件存在是直接返回文件内容,
+     如果所有文件不存在,则按照最后一个URL结果或者code返回
+
+
+61_tryfiles.conf
+word press站点可以使用到tryfiles指令,对于反向代理很有用.可以先尝试从磁盘获取文件内容,
+如果没有在反向代理到上游服务
+
+
+62.实时拷贝流量：precontent阶段的mirror模块
+----------------------------------------------------------
+
+模块:ngx_http_mirror_module模块,默认编译进Nginx,通过--without-http_mirror_module移除模块
+
+处理请求时,生成子请求访问其他服务,对子请求的返回值不作处理
+
+Syntax:    mirror uri | off;
+Default:    mirror off;
+Context:    http, server, location
+
+Syntax:    mirror_request_body on | off;
+Default:    mirror_request_body on;
+Context:    http, server, location 
+
+62_mirror.conf

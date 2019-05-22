@@ -684,3 +684,53 @@ Context:    http, server, location
 
 67.提升多个小文件性能的concat模块
 -------------------------------------------------
+
+在一次请求中返回多个文件内容,对于在web页面中访问多个小文件来提升性能,是很有帮助的
+
+ngx_http_concat_module
+https://github.com/alibaba/nginx-http-concat
+
+concat: on|off
+default: concat off
+Context:http,server,location
+
+concat_delimiter: string
+Default:None
+Context:http, server,location
+如果返回多个文件内容,前端如何知道多个文件内容呢?分隔符
+
+
+concat_types: MIME types
+Default: concat_types:text/css application/x-javascript
+Context:http,server, location
+对哪些文件类型做合并
+
+concat_unique:on | off
+Default: concat_unique on
+Context: http,server,location
+是否对一种文件类型,还是多种文件类型做合并
+
+concat_ignore_file_error: on |off
+Default:off
+Context:http,server,location
+有些文件出现错误,可以忽略继续返回其他文件内容
+
+concat_max_files:numberp
+Default:concat_max_files 10
+Context:http,server,location
+最多可以合并多少文件
+
+./configure --with-http_realip_module --prefix=/home/centos/nginx2 --with-http_auth_request_module --add-module=../nginx-http-concat
+目录结果
+html
+    -concat
+        -1.txt
+        -2.txt
+$>curl localhost:8092/concat/??1.txt,2.txt
+$>1.txt
+  :::2.txt
+
+通过concat模块可以有效提高网络效率,从而提升性能
+
+68.access日志的详细用法
+-------------------------------------------

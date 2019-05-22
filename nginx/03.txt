@@ -546,6 +546,7 @@ word press站点可以使用到tryfiles指令,对于反向代理很有用.可以
 
 62.实时拷贝流量：precontent阶段的mirror模块
 ----------------------------------------------------------
+生产活动中,可能需要同步的copy一份到测试环境,开发环境做处理
 
 模块:ngx_http_mirror_module模块,默认编译进Nginx,通过--without-http_mirror_module移除模块
 
@@ -560,3 +561,89 @@ Default:    mirror_request_body on;
 Context:    http, server, location 
 
 62_mirror.conf
+
+对于多个环境中,需要处理用户流量,非常有帮助
+
+63.content阶段：详解root和alias指令
+-------------------------------------------
+
+Syntax: alias path;
+Default: -
+Context: location
+
+Syntax: root path;
+Default: root html;
+Context: http,server,location,if in location
+
+功能:将url映射为文件路径,已返回静态文件内容
+差别:root会将完整url映射进文件路径中
+alias只会将location后的URL映射到文件路径
+
+63_static.conf
+
+64.static模块提供的3个变量
+--------------------------------------------------
+访问/Realpath/1.txt时,这三个变量的值各位多少?
+location  /RealPath/ {
+    alias html/realpath/;
+            return 200 '$request_filename:$document_root:$realpath_root\n';
+}
+
+ln -sfn src target
+ln -sfn first realpath
+
+request_filename:待访问文件的完整路径
+document_root:由URI和root/alias规则生成的文件夹路径
+realpath_root:将document_root中的软连接等换成真实路径
+$>curl localhost:8088/RealPath/1.txt
+$>/home/centos/nginx2/html/realpath/1.txt:/home/centos/nginx2/html/realpath/:/home/centos/nginx2/html/first
+
+types指令读磁盘文件,根据文件扩展名做映射
+types指令需要加速,需要把扩展名做映射,放到hash表中
+default_type,使用return,本身没有文件名使用type来告诉用户content_type应该填写
+
+问找到文件时的错误日志
+Syntax: log_not_found on | off;
+Default: log_obt_found on;
+Context: http,server,location
+
+65.static模块对url不以斜杠结尾却访问目录的做法
+-------------------------------------------------------
+
+访问目录是URL最后没有带/?
+static模块实现了root/alias功能时,发现访问目标是目录,但URL末尾未加时,会返回301重定向
+ngx提供3种指令控制这样的行为
+location会把原先的url加上一个/
+
+Default:填上域名http://
+Syntax: absolute_redirect on | off;
+Default: absolute_redirect on;
+Context: http,server,location
+
+填上哪一个域名
+Syntax:server_name_in_redirect on | off;
+Default: server_name_in_redirect_off;
+Context: http,server,location
+返回请求中的域名?请求中Host头部指向的域名?server_name中配置的primary的主域名
+
+Syntax: port_in_redirect on | off;
+Default: prot_in_redirect on;
+Context: http,server,location
+
+absolute_redirect off;
+$>curl localhost:8089/first -I
+$>Location: /first/
+
+absolute_redirect on;
+$>curl localhost:8089/first -I
+$>Location: http://localhost:8089/first/
+
+absolute_redirect on;
+$>curl -H "Host: aaa" localhost:8089/first -I
+$>Location: http://aaa:8089/first/
+
+server_name_in_redirect on;
+$>curl -H "Host: aaa" localhost:8089/first -I
+$>Location: http://return.taohui.tech:8089/first/
+
+65_dirredirect.conf

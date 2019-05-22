@@ -647,3 +647,40 @@ $>curl -H "Host: aaa" localhost:8089/first -I
 $>Location: http://return.taohui.tech:8089/first/
 
 65_dirredirect.conf
+
+66.index和autoindex模块的用法
+-------------------------------------------
+
+(1)对访问/时的处理:content阶段的index模块
+功能:指定/访问时返回index文件内容
+ngx_http_index_module
+模块:
+Syntax: index file ...;
+Default: index index.html;
+Context: http,server,location
+
+index领先auto_index
+(2)显示目录内容:content阶段的autoindex模块
+功能:当URL以/结尾值,尝试一html/xml/json/jsonp等格式返回root/alias中指向目录的目录结构
+模块:ngx_http_index_module
+默认编译进Nginx:
+--without-http_autoindex_module取消
+
+Syntax: autoindex_exact_size on |off;
+Default: autoindex_exact_size on;
+Context: http,server,location
+autoindex_format为html时有效,表示显示相对的路径,还是绝对的路径.绝对的路径以字节来显示
+相对路径后面有单位k,m,g
+
+Syntax:    autoindex_format html | xml | json | jsonp;
+Default:    autoindex_format html;
+Context:    http, server, location
+
+Syntax:    autoindex_localtime on | off;
+Default:    
+autoindex_localtime off;
+Context:    http, server, location
+时间是否用本地时间格式
+
+67.提升多个小文件性能的concat模块
+-------------------------------------------------

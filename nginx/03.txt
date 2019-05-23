@@ -787,3 +787,14 @@ off:关闭缓存功能
 
 69.HTTP过滤模块的调用流程
 ----------------------------------------------------------
+
+在content阶段会生成给用户的响应内容.过滤在log模块之前,content模块之后,介入请求处理
+首先对header进行过滤,在对body过滤
+
+ngx_http_copy_filter_module:
+copy_filter:复制包体内容.如果用send_file指令,零拷贝技术,文件内容不经过用户态内存,
+             不经过ngx,直接发给用户.gzip一定要在copy_filter之后,gzip需要对内存中的内容做压缩.
+             打开gzip,copy_filter会让send_file失效,会把文件内容先拷贝一份到内存中,交给后续模块处理
+ngx_http_postpone_filter_module:处理子请求
+ngx_http_header_filter_module:构造响应头部
+ngx_http_write_filter_module:发送响应,最终调用操作系统write/send系统调用,把内存内容发给client

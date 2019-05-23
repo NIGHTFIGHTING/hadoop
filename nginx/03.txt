@@ -734,3 +734,56 @@ $>1.txt
 
 68.access日志的详细用法
 -------------------------------------------
+
+log阶段:记录请求访问日志的log模块
+功能:将HTTP请求相关信息记录到日志
+模块:ngx_http_log_module无法禁用
+
+(1)http://nginx.org/en/docs/http/ngx_http_log_module.html
+Syntax:    log_format name [escape=default|json|none] string ...;
+Default:    log_format combined "...";
+Context:    http
+
+(2)默认的combined日志格式
+log_format combined '$remote_addr - $remote_user [$time_local] '
+                    '"$request" $status $body_bytes_sent '
+                    '"$http_referer" "$http_user_agent"';
+
+remote_addr:远端地址 remote_user:auth_basic远端用户填写的用户名
+time_loca:时间 request:请求 status:返回状态
+body_bytes_sent:body字节数 http_referer:从哪个网站引入的 http_user_agent:浏览器类型
+
+(3)Syntax:    access_log path [format [buffer=size] [gzip[=level]] [flush=time] [if=condition]];
+access_log off;
+Default:    access_log logs/access.log combined;
+Context:    http, server, location, if in location, limit_except
+
+[1]path路径可以包含变量:不打开cache是没记录一条日志都需要,打开关闭日志文件
+      比如:host变量:根据每个请求的host头部值,写入不同文件.如果在path中包含变量,可能每一个请求
+      变量是不同的,不同的请求记录在不同文件中
+[2]if通过变量值控制请求日志是否记录
+[3]日志缓存:
+    功能:批量将内存中的日志写入磁盘(日志并不大,但是引发一个IO调用,磁头旋转,几十毫秒)
+    写入磁盘的条件:
+        所有待写入磁盘的日志大小超出缓存大小(批量积累一批日志,在向磁盘写入)
+        达到flush指定的过期时间(如果没有flush,会在内存中积累很多日志,进程挡掉,这些日志会丢失)
+        worker进程执行reopen命令,或者正在关闭
+[4]日志压缩
+    功能:批量压缩内存中的日志,在写入磁盘
+    buffer大小默认为64KB
+    压缩级别默认为1(1最快压缩率最低,9最慢压缩率最高)
+
+(4)对日志文件名包含变量时的优化
+Syntax:    open_log_file_cache max=N [inactive=time] [min_uses=N] [valid=time];
+open_log_file_cache off;
+Default:    open_log_file_cache off;
+Context:    http, server, location
+经常被使用含有变量的文件,不会被经常的打开关闭
+max:缓存内最大文件句柄数,超出后用LRU算法淘汰
+inactive:文件访问完后在这段时间内不会被关闭,默认10秒
+min_uses:在inactive时间内使用次数超过min_uses才会继续存在内存中.默认1
+valid:超出valid时间后,将对缓存的日志文件检查是否存在.默认60秒
+off:关闭缓存功能
+
+69.HTTP过滤模块的调用流程
+----------------------------------------------------------

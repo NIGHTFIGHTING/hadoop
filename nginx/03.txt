@@ -959,3 +959,47 @@ valid
 referer防盗链是简易的,攻击者很容易修改头部,对于觉到多数盗链都是有效的
 
 76.使用变量实现防盗链功能实践：secure_link模块
+
+referer依赖浏览器发起的请求,如果攻击这伪造referer头部成本很低.
+
+防盗链的一种解决方案:secure_link模块
+通过验证URL中哈希值的方式防盗链
+过程:
+1)由某服务器(也可以是nginx)生成加密后的安全连接url,返回给客户端
+2)客户端使用安全url访问nginx,有nginx的secure_link变量判断是否验证通过
+
+原理:
+1)哈希算法是不可逆的
+2)客户端只能拿到执行过哈希算法的URL
+3)仅生成URL的服务器,验证URL是否安全的nginx这二者,才保存执行哈希算法前的原始字符串
+4)原始字符串通畅有以下部分有序组成:
+1]资源为止,例如HTTP中指定资源的URL,防止攻击者拿到一个安全URL后可以访问任意资源
+2]用户信息,例如用户IP地址,限制其他用户盗用安全URL
+3]时间戳,使安全URL即使过期
+4]密钥,仅服务器端拥有,增加攻击者猜测出原始字符串的难度
+
+secure_link模块指定:
+Syntax:    secure_link expression;
+Default:    —
+Context:    http, server, location
+
+Syntax:    secure_link_md5 expression;
+Default:    —
+Context:    http, server, location
+
+Syntax:    secure_link_secret word;
+Default:    —
+Context:    location
+
+获取现在Unix时间戳:date +%s
+Unix时间戳转为普通时间:date -d @Unix timestamp
+
+--with-http_secure_link_module --with-http_realip_module --prefix=/home/centos/nginx2 --with-http_auth_request_module --add-module=../nginx-http-concat --with-http_sub_module --with-http_addition_module
+
+变量:secure_link(值为空字符串:验证不通过;值为0:URL过期;值为1:验证通过),secure_link_expires
+模块ngx_http_secure_link_module,默认为编译进nginx,需要通过--with-http_secure_link_module添加
+$>echo -n '2147483647/test1.txt127.0.0.1 secret' | openssl md5 -binary  | openssl base64 | tr +/ _ | tr -d =
+$>curl '127.0.0.1:8096/test1.txt?md5=W3_KqcBTiMxdPB4_CsiHBw&expires=2147483647'
+
+$>echo -n 'test1.txtmysecret2' | openssl md5 -hex
+$>curl '127.0.0.1:8096/p/c3f9b32bf901b04c052ea9511e29a918/test1.txt'

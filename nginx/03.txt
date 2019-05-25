@@ -798,3 +798,35 @@ copy_filter:复制包体内容.如果用send_file指令,零拷贝技术,文件�
 ngx_http_postpone_filter_module:处理子请求
 ngx_http_header_filter_module:构造响应头部
 ngx_http_write_filter_module:发送响应,最终调用操作系统write/send系统调用,把内存内容发给client
+
+
+70.用过滤模块更改响应中的字符串：sub模块
+----------------------------------------------------------------
+
+功能:把响应中指定的字符串,替换为新的字符串
+模块:ngx_http_sub_filter_module模块
+默认未编译进Nginx,通过--with-http_sub_module启用
+
+Syntax:    sub_filter string replacement;
+Default:    —
+Context:    http, server, location
+
+Syntax:    sub_filter_last_modified on | off;
+Default:    
+sub_filter_last_modified off;
+Context:    http, server, location
+是否显示未修改之前的last_modified
+
+Syntax:    sub_filter_last_modified on | off;
+Default:    
+sub_filter_last_modified off;
+Context:    http, server, location
+是否值只替换1次
+
+Syntax:    sub_filter_types mime-type ...;
+Default:    
+sub_filter_types text/html;
+Context:    http, server, location
+针对什么样的响应替换
+
+70_sub.conf

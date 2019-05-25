@@ -847,6 +847,11 @@ Context:    http, server, location
 
 功能:在响应前或者响应后增加内容,而增加内容的方式是通过新URL响应完成
 模块:ngx_http_addition_filter_module模块,默认未编译进Nginx,通过--with-http_addition_module
+$>curl localhost:8095/a.txt
+$>new content before
+a
+new content after
+
 
 72.Nginx变量的运行原理
 ------------------------------------------------------

@@ -830,3 +830,127 @@ Context:    http, server, location
 针对什么样的响应替换
 
 70_sub.conf
+
+71.用过滤模块在http响应的前后添加内容：addition模块
+------------------------------------------------------------------
+Syntax:    add_before_body uri;
+Default:    —
+Context:    http, server, location
+
+Syntax:    add_after_body uri;
+Default:    —
+Context:    http, server, location
+
+Syntax:    addition_types mime-type ...;
+Default:    addition_types text/html;
+Context:    http, server, location
+
+功能:在响应前或者响应后增加内容,而增加内容的方式是通过新URL响应完成
+模块:ngx_http_addition_filter_module模块,默认未编译进Nginx,通过--with-http_addition_module
+
+72.Nginx变量的运行原理
+------------------------------------------------------
+
+(1)在nginx.conf通过变量,可以修改各个模块处理请求的方式
+(2)在openresty的lua语言中
+
+变量的提供模块与使用模块
+提供变量模块:
+Nginx启动发现这是一个http模块,有一个回调方法preconfiguration,告诉这个模块读取配置文件了.
+pre表示在读取nginx.conf之前定义新的变量,比如ngx_http_referer_variable提供invalid_referer这个变量
+解析出变量的方法(输入就是请求的header),变量名(输出是变量名的值)
+
+使用变量模块:比如http的access日志
+解析nginx.conf时定义变量使用方式
+变量值:处理请求
+
+惰性求值:使用变量的模块,只有在请求接收到的时候,并且到了11个http阶段/过滤模块读取这个变量的时候.
+才会去求值
+
+变量值在请求处理中是时刻变化的
+有些不会变化,http的header,方法名,有些变化的limit_rate.读取变量值的那一刻,并不代表请求处理前的值
+
+存放变脸的哈希表
+Syntax: variables_hash_bucket_size size;
+Default: variables_hash_bucket_size 64
+Context: http
+
+Syntax: variables_hash_max_size size;
+Default variables_hash_max_size 1024;
+Context: http
+
+stream模块与http模块使用变量方式相同
+
+73.HTTP框架提供的请求相关的变量
+----------------------------------------------------------
+
+(1)http框架提供的变量不需要编译引入新的http模块,框架变量可以反映处理请求的细节
+(2)73_var.conf
+有些变量在return阶段没有发生变化
+curl -H 'Content-Length: 0' - H'Cookie: a=c1' 'localhost:8094?a=1&=22'
+
+HTTP框架提供的变量
+01)http请求相关的变量
+02)TCP连接相关的变量
+03)Nginx处理请求过程中产生的变量
+04)发送HTTP响应时相关的变量
+05)Nginx系统变量
+
+
+74.HTTP框架提供的其他变量
+---------------------------------------------
+
+75.使用变量防盗链的referer模块
+----------------------------------------------
+
+场景:当网站通过url引用了你的页面,当用户在浏览器上点击url时,http请求的头部中会通过referer头部,
+将该网站当前页面的URL带上,告诉服务器本次请求是由这个页面发起的
+目的:拒绝非正常的网站访问我们站点的资源
+思路:通过referer模块,用invalid_referer变量根据配置判断referer头部是否合法
+referer模块:默认编译进Nginx,通过--without-http_referer_module禁用
+
+Syntax:    valid_referers none | blocked | server_names | string ...;
+Default:    —
+Context:    server, location
+
+valid_referers指令:可同时携带多个参数,表示多个referer头部都生效
+参数值:
+(1)none:允许缺失referer头部的请求访问
+(2)block:允许referer头部没有对应的值的请求访问(经过反向代理/防火墙,没有做好配置或者处理)
+(3)server_names:若referer中站点域名与server_name中本机域名某个匹配,则允许该请求访问
+(4)表示域名及URL的字符串,对域名可在前缀或者后缀中含有*通配符
+(5)若referer头部的值匹配字符串后,则允许访问
+(6)正则表达式:若referer头部的值匹配正则表达式后,则允许访问
+
+Syntax:    referer_hash_bucket_size size;
+Default:    
+referer_hash_bucket_size 64;
+Context:    server, location
+
+Syntax:    referer_hash_max_size size;
+Default:    
+referer_hash_max_size 2048;
+Context:    server, location
+
+75_referer.conf
+
+$>curl -H 'referer: http://www.taohui.org.cn/ttt; referfer.taohui.tech/
+403
+$>curl -H 'referfer: http://www.taohui.pub/ttt' referer.taohui.tech/
+valid
+$>curl -H 'referer:' referfer.taohui.tech/
+valid
+$>curl referfer.taohui.tech/
+valid
+$>curl -H 'referfer: http://www.taohui.tech' referfer.taohui.tech/
+403
+$>curl -H 'referfer: http://referer/taohui.tech' referer.taohui.tech/
+valid
+$>curl -H 'referer: http://image.baidu.com/search/detail' referer.taohui.tech/
+403
+$>curl -H 'referer: http://image.google.com/search/detail' referer.taohui.tech/
+valid
+
+referer防盗链是简易的,攻击者很容易修改头部,对于觉到多数盗链都是有效的
+
+76.使用变量实现防盗链功能实践：secure_link模块

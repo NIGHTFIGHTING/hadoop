@@ -124,6 +124,18 @@ $>curl -H "X-Forwarded-For: 1.1.1.1" 192.168.244.131:8100?username=x11111
 85.一致性哈希算法：hash模块
 ---------------------------------------------------------
 
+当上游服务器数量发生变化时,它的路由策略失效,一致性hash能缓解这个问题 
+宕机或者扩容时,hash算法引发大量路由变更,可能导致缓存大范围失效
+
+4台server放在一个环上,任何一个键key计算hash会有一个值.4个节点按照整数,比如hash全是32为整型,
+4个节点均匀的放在环上.分的力度很细,假如在扩容,影响范围很小
+当上游服务使用缓存时,会导致缓存失效.不能解决宕机或者扩容,所有路由不能发生变化,这个解决不了
+
+使用一致性hash算法: upstream_hash模块 
+Syntax: hash key [consistent];
+Default: -
+Context: upstream
+
 86.最少连接算法以及如何跨worker进程生效
 ---------------------------------------------------------
 优先选择连接最少的上游服务器
@@ -136,6 +148,8 @@ Syntax:least_conn;
 Default: -
 Context: upstream
 
+原来讲的负载均衡算法默认只在一个worker进程生效,因为放在内存中.使用共享内存,上游服务器的信息
+以及当前状态信息全部存放在共享内存中
 使用共享内存使负载均衡对所有worker进程生效:upstream_zone模块
 功能:分配出共享内存,将其他upstream模块定义的负载均衡策略数据,运行时每个上游服务的状态数据存放在
 共享内存上,以对所有nginx worker进程生效.
@@ -143,3 +157,19 @@ Context: upstream
 Syntax: zone name [size];
 Default: -
 Context: upstream
+
+upstream模块间的顺序:功能的正常运行
+用共享内存替代原先的内存存储,解决了多个worker进程之间共享配置,共享负载均衡算法能力
+
+ngx_module_t *ngx_modules[] {
+    ... ...
+    &ngx_http_upstream_hash_module,    
+    &ngx_http_upstream_ip_hash_module,    
+    &ngx_http_upstream_least_conn_module,    
+    &ngx_http_upstream_keepalive_module,    
+    &ngx_http_upstream_zone_module, 
+    ... ...
+};
+
+87.http upstream模块提供的变量
+-------------------------------------------------------

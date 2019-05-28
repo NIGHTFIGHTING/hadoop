@@ -84,9 +84,16 @@ fail_timeout
 指定一段时间内,最大的失败次数max_fails.
 到达max_fils后,改server不能访问的时间.
 
+83_roundrobin.conf
+83_upserver.conf
+
 
 84.负载均衡哈希算法：ip_hash与hash模块
 -------------------------------------------------------------
+
+round-robin无法保证某一类请求只能由某一台服务器处理,只能做AKF中的X轴水平扩展
+基于Z轴扩展:hash算法
+
 基于客户端IP地址的Hash算法实现负载均衡:upstream_ip_hash模块
 功能:以客户端的IP地址作为hash算法的关键字,映射到特定的上游服务器中.
 对IPV4地址使用前3个字节作为关键字,对IPV6使用完整地址
@@ -105,3 +112,14 @@ Syntax: hash key [consistent];
 Default: -
 Context: upstream
 
+84_iphash.conf
+hash key
+$>curl -H "X-Forwarded-For: 1.1.1.1" 192.168.244.131:8100?username=x11111asdadsadssa
+$>curl -H "X-Forwarded-For: 1.1.1.1" 192.168.244.131:8100?username=x11111
+
+使用hash算法可以保证某一类请求,只路由到某一台上游服务中,无论这台上游服务是否正常在线,当一台
+上游服务线下,损坏了,不能直接把这台server直接从upstream配置中移除.因为移除后,导致它的hash算法
+发生变化,同时影响到路由到其他server的请求也发生变化.一致性hash算法可以缓解这个问题.
+
+85.一致性哈希算法：hash模块
+---------------------------------------------------------

@@ -123,3 +123,23 @@ $>curl -H "X-Forwarded-For: 1.1.1.1" 192.168.244.131:8100?username=x11111
 
 85.一致性哈希算法：hash模块
 ---------------------------------------------------------
+
+86.最少连接算法以及如何跨worker进程生效
+---------------------------------------------------------
+优先选择连接最少的上游服务器
+upstream_least_conn模块
+功能:从所有上游服务器中,找出当前并发连接数量少的一个,将请求转发给它
+如果出现多个最少连接服务器的连接数都是一样的.使用round-robin算法.
+模块:
+ngx_http_upstream_least_conn_module,通过--without-http_upstream_least_conn_module禁用模块
+Syntax:least_conn;
+Default: -
+Context: upstream
+
+使用共享内存使负载均衡对所有worker进程生效:upstream_zone模块
+功能:分配出共享内存,将其他upstream模块定义的负载均衡策略数据,运行时每个上游服务的状态数据存放在
+共享内存上,以对所有nginx worker进程生效.
+模块:ngx_http_upstream_zone_module,通过--without-http_upstream_ip_hash_module禁用
+Syntax: zone name [size];
+Default: -
+Context: upstream

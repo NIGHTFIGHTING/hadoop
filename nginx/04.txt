@@ -178,7 +178,7 @@ ngx_module_t *ngx_modules[] {
 
 88.http反向代理proxy处理请求的流程
 -------------------------------------------------------
-
+proxy模块从客户端接收http协议,转发给上游也是http协议
 
 
 
@@ -203,8 +203,16 @@ URL参数规则:
 90.根据指令修改发往上游的请求
 --------------------------------------------------------
 
+http_proxy为上游生成请求时,提供很多指令.这些指令怎样修改转发给上游请求的内容.
+
 proxy_pass是动作类指令,指定在某一个阶段中,直接使用proxy模块处理请求
 
+90_proxy.conf
+90_upserver.conf
+
+$>curl -H 'name: myname' lcalhost:8101/a
+
+(1)proxy模块:生成发往上游的请求行
 Syntax: proxy_method method;
 Default: -
 Context: http,server,location
@@ -213,7 +221,7 @@ Syntax: proxy_http_version 1.0|1.1;
 Default: proxy_http_version 1.0;
 Context: http,server,location
 
-proxy模块:生成发往上游的请求头部
+(2)proxy模块:生成发往上游的请求头部
 Syntax: proxy_set_header field value;
         proxy_set_header Host $proxy_host;
 Context: http,server,location
@@ -231,3 +239,8 @@ Context: http,server,location
 Syntax: proxy_set_body value;
 Default: -
 Context: http,server,location
+
+构造发往上游服务器请求内容,会影响上游服务器怎样处理这个请求.包括缓存,Host头部,keep-alive
+
+91.接收用户请求包体的方式
+--------------------------------------------------

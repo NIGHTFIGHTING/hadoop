@@ -246,7 +246,7 @@ tcpdump -i lo  port 8098 -A -s 0
 
 91.接收用户请求包体的方式
 --------------------------------------------------
-接收客户端请求的包体:收完在转发还是边收边转发
+(1)接收客户端请求的包体:收完在转发还是边收边转发
 Syntax: proxy_request_buffering on | off;
 Default : proxy_request_buffering on;
 Context: http,server,location
@@ -256,34 +256,49 @@ off:更及时的响应,降低nginx读写磁盘的消耗(nginx需要先把client�
 向上游发送需要再次读取磁盘),
 一旦开始发送内容,proxy_next_upstream功能失败
 
-Syntax: client_body_buffer_size size;
+(2)Syntax: client_body_buffer_size size;
 Default: client_body_buffer_size 8k|16k;
 Context: http,server,location
 
 接收header的时候可能接收到一点点body,判断接收到的body是不是全部的body
-(1)若接收头部时,已经接收完全部包体,则不分配
-(2)若剩余待接收包体的长度小于client_body_buffer_size,则仅分配所需大小(content-length明确表示多少字节没有接收到)
+[1]若接收头部时,已经接收完全部包体,则不分配
+[2]若剩余待接收包体的长度小于client_body_buffer_size,则仅分配所需大小(content-length明确表示多少字节没有接收到)
 (不管client是1G还是10G,我们都是一段一段收)
-(3)分配client_body_buffer_size大小内存接收包体
+[3]分配client_body_buffer_size大小内存接收包体
     -关闭包体缓存时,该内存上内容及时发给上游
     -打开包体缓存,该段大小内存用完时,写入临时文件释放内存
 
-Syntax: client_body_in_single_buffer on|off;
+(3)Syntax: client_body_in_single_buffer on|off;
 Default: client_body_in_single_buffer off;
 Context: http,server,location
 如果这个变量打开.proxy_request_buffering这个变量就可以使用了
 
+(4)最大包体长度限制:
+Syntax: client_max_body_size size;
+Default: client_max_body_size 1m;
+Context: http,server,location
+仅对请求头部中含有Content-Length有效超出最大长度后,返回413错误
+
+(5)临时文件路径格式:
+Syntax: client_body_temp_path path [level1 [level2[level3]]];
+Default: client_body_temp_path client_body_temp;
+Context: http,server,location
 client_body_temp下面会建立几个子目录,每一个临时文件是一个很长的整数.原因:一个目录下不能存放
 太多文件,文件太多导致存取速度非常慢(多级子目录)
 
-Syntax: client_body_in_file on|clean|off;
-
+(6)Syntax: client_body_in_file on|clean|off;
+Default: client_body_in_file_only off;
+Context: http,server,location
 包体必须存放在文件中需要定位问题
 on:所有用户上传的body,一直保存在文件中.包括请求处理完毕,文件不会被删除掉
 clean:用户上传的body必须写入文件,请求处理完成,会删除
 off:如果body长度非常小,以及内存buffer_size超过body大小,不会写入文件
 
 
+(7)读取包体的超时,则返回408错误
+Syntax: client_body_timeout time;
+Default: client_body_timeout 60s;
+Context: http,server,location
 两次读取body的最大时延,和tcp概念相关联,收到一段tcp报文,超过60s没收到认为超时
 
 怎样处理body,我们怎样看待下游网速,以及上游网速,以及上游服务器处理性能.优化nginx吞吐量手段

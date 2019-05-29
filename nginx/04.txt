@@ -173,3 +173,61 @@ ngx_module_t *ngx_modules[] {
 
 87.http upstream模块提供的变量
 -------------------------------------------------------
+不含有缓存的变量
+
+
+88.http反向代理proxy处理请求的流程
+-------------------------------------------------------
+
+
+
+
+89.proxy模块中的proxy_pass指令
+-------------------------------------------------------
+
+对HTTP协议的方向代理:proxy模块
+URL参数规则:
+(1)URL必须以http://或者https://开头,接下来是域名,IP,unix socket地址或者upstream的名字,
+前两者可以在域名或者IP后加端口,最后是可选的URI
+
+(2)当URI参数中携带URI与否,会导致发向上游请求的URL不同:
+   [1]不携带URI,则将客户端请求中的URL直接装发给上游
+      -location后使用正则表达式,@名字时,应采用这种方式
+   [2]携带URI,则对用户请求中的URL作如下操作:
+      -将location参数中匹配上的一段替换为改URI
+(3)该URL参数中可以携带变量
+(4)更复杂的URL替换,可以在location内的配置添加rewrite break语句
+
+
+
+90.根据指令修改发往上游的请求
+--------------------------------------------------------
+
+proxy_pass是动作类指令,指定在某一个阶段中,直接使用proxy模块处理请求
+
+Syntax: proxy_method method;
+Default: -
+Context: http,server,location
+
+Syntax: proxy_http_version 1.0|1.1;
+Default: proxy_http_version 1.0;
+Context: http,server,location
+
+proxy模块:生成发往上游的请求头部
+Syntax: proxy_set_header field value;
+        proxy_set_header Host $proxy_host;
+Context: http,server,location
+
+注意:若value的值为空字符串,则整个header都不回想上游发送
+
+Syntax: proxy_pass_request_headers on|off;
+Default: proxy_pass_request_headers on;
+Context: http,server,location
+
+Syntax: proxy_pass_request_body on|off;
+Default: proxy_pass_request_body on;
+Context: http,server,location
+
+Syntax: proxy_set_body value;
+Default: -
+Context: http,server,location

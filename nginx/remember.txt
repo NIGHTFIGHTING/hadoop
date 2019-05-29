@@ -1,3 +1,8 @@
 1.以后禁止11:30后睡觉
 2.厕所不许说话
 3.鸡蛋皮垃圾不允许扔在水池子里
+
+https://pnote.net/pan/
+npm install baidupankey -g
+bdp  -u https://pan.baidu.com/s/1sHbFSPo-1R8tm3lCQYAbGQ
+https://www.xzymoe.com/geek-time-download/

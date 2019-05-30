@@ -302,3 +302,65 @@ Context: http,server,location
 两次读取body的最大时延,和tcp概念相关联,收到一段tcp报文,超过60s没收到认为超时
 
 怎样处理body,我们怎样看待下游网速,以及上游网速,以及上游服务器处理性能.优化nginx吞吐量手段
+
+92.与上游服务建立连接
+------------------------------------------
+
+(1)向上游服务建立连接
+Syntax: proxy_connect_timeout time;
+Default:    
+proxy_connect_timeout 60s;
+Context:    http, server, location
+控制TCP握手时间
+nginx没有与上游服务建立连接:502
+超时后,回向客户端生成http响应,响应码502
+
+(2)当出现错误换一个上游服务器继续处理
+Syntax: proxy_next_upstream error | timeout | invalid_header | http_500 | http_502 | http_503 | http_504 | http_403 | http_404 | http_429 | non_idempotent | off ...;
+Default:    
+proxy_next_upstream error timeout;
+Context:    http, server, location
+
+
+(3)上有连接启用 tcp keepalive
+Syntax: proxy_socket_keepalive on | off;
+Default:    
+proxy_socket_keepalive off;
+Context:    http, server, location
+数据包传输过程时.设置一段时常,如果没有响应,发送探测包去探测,看一看对端是否在建立连接
+TCP keeplive是操作系统实现的.目的:把一些不使用的连接及时关闭,减少资源浪费
+
+(4)上游连接启用http keep alive
+Syntax: keepalive connections;
+Default:    —
+Context:    upstream
+
+Syntax: keepalive_requests number;
+Default:    
+keepalive_requests 100;
+Context:    upstream
+
+(5)修改TCP连接中的local address
+Syntax: proxy_bind address [transparent] | off;
+Default:    —
+Context:    http, server, location
+[1]当nginx上游有多个ip地址,有多个路由策略不同.不使用系统默认ip地址.主动选择ip地址
+[2]透传ip地址
+
+可以使用变量:
+ - proxy_bind $remote_addr;
+可以使用不属于所在机器的IP地址:
+ - proxy_bind $remote_addr transparent;
+ (linux操作系统需要transparent,非linux系统worker进程需要有root权限)
+
+(6)当客户端关闭连接时
+当上游client异常关闭连接,porxy是否忽略.client与nginx已经关闭,nginx与上游服务连接正常工作
+Syntax: proxy_ignore_client_abort on | off;
+Default:    
+proxy_ignore_client_abort off;
+Context: http, server, location
+(7)向上游发送http请求
+Syntax: proxy_send_timeout time;
+Default:    
+proxy_send_timeout 60s;
+Context:    http, server, location

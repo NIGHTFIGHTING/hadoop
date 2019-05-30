@@ -364,3 +364,91 @@ Syntax: proxy_send_timeout time;
 Default:    
 proxy_send_timeout 60s;
 Context:    http, server, location
+
+
+93.接收上游的响应
+-------------------------------------------------
+(1)Syntax: proxy_buffer_size size;
+Default:    
+proxy_buffer_size 4k|8k;
+Context:    http, server, location
+限定http响应header中最大值,如果上游响应出现set-cookie特别长,可能会导致上游http response header超过
+这个值
+error.log:
+
+上游服务与nginx走的是企业内网,网速快proxy_byffering on;
+如果边读包体边发,client与nginx网速很慢.对于比较大的body,nginx与上游长时间建立连接
+
+(2)
+Syntax: proxy_buffers number size;
+Default:    
+proxy_buffers 8 4k|8k;
+Context:    http, server, location
+如果开启proxy_buffer on;不一定会向磁盘写入上游包体.如果包体很小,内存可以放入
+
+(3)尽快释放上游服务连接
+Syntax: proxy_buffering on | off;
+Default:    
+proxy_buffering on;
+Context:    http, server, location
+
+(4)限制写入磁盘文件最大值
+Syntax: proxy_max_temp_file_size size;
+Default:    
+proxy_max_temp_file_size 1024m;
+Context:    http, server, location
+
+(5)每一次向磁盘中写入临时文件字节数
+Syntax: proxy_temp_file_write_size size;
+Default:    
+proxy_temp_file_write_size 8k|16k;
+Context:    http, server, location
+
+(6)存放磁盘临时文件目录在哪里,以及几级目录
+Syntax: proxy_temp_path path [level1 [level2 [level3]]];
+Default:    
+proxy_temp_path proxy_temp;
+Context:    http, server, location
+
+(7)虽然缓存响应,但是仍然想及时向client发送部分响应(proxy_buffering on;开启时)
+Syntax: proxy_busy_buffers_size size;
+Default:    
+proxy_busy_buffers_size 8k|16k;
+Context:    http, server, location
+接收到8k|16k向client发送响应
+
+(8)两次读取
+Syntax: proxy_read_timeout time;
+Default:    
+proxy_read_timeout 60s;
+Context:    http, server, location
+
+(9)限制读取上游的响应
+Syntax: proxy_limit_rate rate;
+Default:    proxy_limit_rate 0;(不限制上游响应速度)
+Context:    http, server, location
+
+(10)上游包体的持久化
+更改目录,默认是root
+Syntax: proxy_store on | off | string;
+Default:    
+proxy_store off;
+Context:    http, server, location
+
+
+更改权限
+Syntax: proxy_store_access users:permissions ...;
+Default:    
+proxy_store_access user:rw;
+Context:    http, server, location
+
+93_upserver.conf
+93_store.conf
+$>curl localhost:8102/a.txt
+/tmp/a.txt存在,html/a.txt存在
+
+反向代理如何接收上游response的header,body,以及对body的临时文件做持久化处理
+
+
+94.处理上游的响应头部
+--------------------------------------------------------------------

@@ -523,3 +523,28 @@ Context:    http, server, location
  -http_
  -non_idempotent:RFC7231规定POST, LOCK, PATCH请求,在上游服务不能使用upstream重选一个服务时,使用
  -off
+
+ 可以让nginx把错误屏蔽掉
+(2)限制proxy_next_upstream的时间与次数
+Syntax: proxy_next_upstream_timeout time;
+Default:    
+proxy_next_upstream_timeout 0;
+Context:    http, server, location
+
+Syntax: proxy_next_upstream_tries number;
+Default:    
+proxy_next_upstream_tries 0;
+Context:    http, server, location
+
+(3)用error_page拦截上游失败响应
+当上游响应的响应码大于等于300时,应将响应返回客户端还是按error_page指令处理
+Syntax: proxy_intercept_errors on | off;
+Default:    
+proxy_intercept_errors off;
+Context:    http, server, location
+
+95_nextups.conf
+95_upserver.conf
+
+nginx与上游服务连接以及传输数据时,只要没有向client发送一个字节,可以认为上游的某些响应有问题.
+重新访问新的上游返回给client.client无感知.对于nginx作为一个集群,容错上游服务.

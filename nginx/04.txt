@@ -452,3 +452,74 @@ $>curl localhost:8102/a.txt
 
 94.处理上游的响应头部
 --------------------------------------------------------------------
+
+从上游发来的http的header,很多可以控制nginx行为的头部.反向代理这层可以修改上游服务发来的header内容,
+以及他们产生的效用
+http上游返回的header会被过滤模块处理
+(1)禁用上游响应header头部的功能
+Syntax: proxy_ignore_headers field ...;
+Default: -
+Context: http, server, location
+只对具有特殊功能的header发挥作用
+功能:某些响应头部可以改为nginx的行为,使用proxy_ignore_headers可以禁止它们生效
+可以禁用功能的头部:
+[1]X-Accel-Redirect:由上游服务器指定在nginx内部重定向,控制请求执行
+[2]X-Accel-Limit-Rate:由上游设置发往客户端的速度限制,等同limite_rate指令
+[3]X-Accel-Buffering:由上游控制是否缓存上游的响应
+[4]X-Accel-Charset:由上游控制Content-Type中的Charset
+
+(2)转发上游的响应:proxy_hide_header指令
+Syntax: proxy_hide_header field;
+Default:    —
+Context:    http, server, location
+proxy_hide_header功能:对于上游响应中的某些头部,设置不向客户端转发
+proxy_hide_header默认不转发响应头部:
+    -Date: 由ngx_http_header_filter_module过滤模块填写,值为nginx发送响应头部时的时间
+
+(3)proxy_pass_header:对于已经被proxy_hide_header的头部,设置向上游转发
+Syntax: proxy_pass_header field;
+Default:    —
+Context:    http, server, location
+
+(4)修改上游响应返回的Set-Cookie头部
+Syntax: proxy_cookie_domain off;
+proxy_cookie_domain domain replacement;
+Default:    
+proxy_cookie_domain off;
+Context:    http, server, location
+
+Syntax: proxy_cookie_path off;
+proxy_cookie_path path replacement;
+Default:    
+proxy_cookie_path off;
+Context:    http, server, location
+
+94_proxy.conf
+94_upserver.conf
+
+有一些heade不会被nginx转发给client
+一些头部对nginx产生影响,nginx可以关闭这些影响
+nginx可以保证默认被修改的头部,向客户端完整的展示.nginx也可以控制不向client发送
+对Set-Cookie,location也可以做定置化修改
+
+proxy_pass指令通过反向代理处理请求,生成向上游发送请求的内容,以及接收client发送的http body;
+与上游服务建立连接,接收上游服务的响应内容.以及处理响应头部
+
+95.上游出现失败时的容错方案
+-----------------------------------------------------------------
+
+接收到开始转发1个字节之前,nginx判断
+(1)当出现错误换一个上游服务器继续处理
+Syntax: proxy_next_upstream error | timeout | invalid_header | http_500 | http_502 | http_503 | http_504 | http_403 | http_404 | http_429 | non_idempotent | off ...;
+Default:    
+proxy_next_upstream error timeout;
+Context:    http, server, location
+前提:
+ - 没有向客户端发送任何内容
+配置:
+ -error
+ -timeout
+ -invalid_header
+ -http_
+ -non_idempotent:RFC7231规定POST, LOCK, PATCH请求,在上游服务不能使用upstream重选一个服务时,使用
+ -off

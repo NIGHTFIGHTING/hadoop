@@ -3,6 +3,7 @@
 3.鸡蛋皮垃圾不允许扔在水池子里
 4.轻声走路
 5.厨房不允许搞的太乱
+6.不要易怒,听老婆话,做一个善良的人,努力赚钱买房子
 
 https://pnote.net/pan/
 npm install baidupankey -g

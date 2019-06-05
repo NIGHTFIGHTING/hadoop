@@ -4,6 +4,10 @@
 4.轻声走路
 5.厨房不允许搞的太乱
 6.不要易怒,听老婆话,做一个善良的人,努力赚钱买房子
+7.提醒老婆check卡片
+
+1.每天都得刷题目
+2.要有套路的把会的东西,讲出来.(算法题目,nginx)
 
 https://pnote.net/pan/
 npm install baidupankey -g

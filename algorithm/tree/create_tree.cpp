@@ -6,6 +6,11 @@ struct TreeNode {
     std::string value;
     TreeNode* left;
     TreeNode* right;
+    TreeNode() {
+        value.clear();
+        left = nullptr;
+        right = nullptr;
+    }
 };
 
 
@@ -34,5 +39,6 @@ void pre_order(TreeNode* root) {
 int main() {
     TreeNode* root = create_tree();
     pre_order(root);
+    std::cout << std::endl;
     return 0;
 }

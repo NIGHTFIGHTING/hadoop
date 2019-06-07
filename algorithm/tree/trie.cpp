@@ -8,6 +8,7 @@ struct TrieTree {
     char* str;
     bool end;
     TrieTree* next[26];
+    // std::map<char, TrieTree*> next;
     TrieTree() {
         str = nullptr;
         end = false;
@@ -67,6 +68,19 @@ bool find_trie_tree(TrieTree* root, const char* str) {
     return false;
 }
 
+bool is_prefix(TrieTree* root, const char* str) {
+    TrieTree* temp = root;
+    while(*str != '\0') {
+        if (temp->next[*str - 97] != nullptr) {
+            temp = temp->next[*str - 97];
+            str++;
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
 int main() {
     insert_tree("abc");
     insert_tree("abcd");
@@ -74,5 +88,6 @@ int main() {
     std::cout << "find_trie_tree(root, 'abc'): " << find_trie_tree(root, "abc") << std::endl;
     std::cout << "find_trie_tree(root, 'abcd'): " << find_trie_tree(root, "abcd") << std::endl;
     std::cout << "find_trie_tree(root, 'abcde'): " << find_trie_tree(root, "abcde") << std::endl;
+    std::cout << "is_prefix(root, 'ab'): " << is_prefix(root, "ab") << std::endl;
     return 0;
 }

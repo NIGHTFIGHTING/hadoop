@@ -39,6 +39,8 @@ int main()
     //那么这个bash(shell)通常就是session leader; 你可以调用系统功函数创建新的session。
 
     //ps -eo pid,ppid,sid,tty,pgrp,comm | grep -E 'bash|PID|nginx'
+    // e显示全部,
+    // o format,进程id,父进程id,会话组id(sid),终端名称(tty),进程组id(pgrp),执行对应的命令(comm)
 
     //a)如果我 xshell终端要断开的话，系统就会发送SIGHUP信号（终端断开信号），给session leader,也就是这个bash进程
     //b)bash进程 收到 SIGHUP信号后，bash会把这个信号发送给session里边的所有进程，收到这个SIGHUP信号的进程的缺省动作就是退出；

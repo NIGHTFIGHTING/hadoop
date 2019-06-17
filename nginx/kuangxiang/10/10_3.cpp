@@ -6,11 +6,11 @@
 int main(int argc, char *const *argv)
 {
 
-    fork();  //一般fork都会成功所以不判断返回值了,我们假定成功
-    fork();
+    //fork();  //一般fork都会成功所以不判断返回值了,我们假定成功
+    //fork();
 
-    //((fork() && fork()) || (fork() && fork()));
-    //printf("每个实际用户ID的最大进程数=%ld\n",sysconf(_SC_CHILD_MAX));
+    ((fork() && fork()) || (fork() && fork()));
+    printf("每个实际用户ID的最大进程数=%ld\n",sysconf(_SC_CHILD_MAX));
 
 
     for(;;)

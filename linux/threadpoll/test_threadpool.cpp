@@ -1,7 +1,8 @@
-// g++ threadpoll.cpp -std=c++11 -lpthread -o pool
+// g++ test_threadpool.cpp  -std=c++11 -lpthread -o pool
 #include <iostream>
 #include <pthread.h>
 #include <deque>
+#include <vector>
 
 struct Task;
 typedef void* (*TASK_FUNC)(void* arg);
@@ -52,11 +53,19 @@ public:
     void condition_signal() {
         pthread_cond_signal(&_cond);
     }
+    void condition_broadcast() {
+        pthread_cond_broadcast(&_cond);
+    }
 private:
     Mutex _mutex;
     pthread_cond_t _cond;
 };
 void* run_in_thread(void* arg);
+class ThreadPool;
+struct ThreadItem {
+    pthread_t handle;
+    ThreadPool* thread_pool;
+};
 class ThreadPool {
 public:
     explicit ThreadPool(int thread_size, int max_deque_size):
@@ -75,31 +84,44 @@ public:
     void run() {
         _running = true;
         for (int i = 0; i < _thread_size; ++i) {
-            pthread_t tid;
             //pthread_create(&tid, nullptr, run_in_thread, static_cast<void*>(this));
-            pthread_create(&tid, nullptr, run_in_thread, this);
+            ThreadItem* item = new ThreadItem;
+            item->thread_pool = this;
+            _thread_items.push_back(item);
+            pthread_create(&item->handle, nullptr, run_in_thread, item);
         }
     }
     void* run_thread(void* arg) {
         std::cout << "asdadstest hahh" << std::endl;
-        pthread_detach(pthread_self());
-        ThreadPool* thread_pool = static_cast<ThreadPool*>(arg);
+        ThreadItem* item = static_cast<ThreadItem*>(arg);
+        ThreadPool* thread_pool = item->thread_pool;
         std::deque<Task> task_que = thread_pool->_task_que;
         std::cout << "test hahh" << std::endl;
-        while(1) {
+        while(_running) {
             _mutex.lock();
             while(task_que.empty() && thread_pool->_running) {
                 _not_empty.condition_wait();
             }
             Task task = task_que.front();
             task_que.pop_front();
+            _mutex.unlock();
             task.task_func(task.arg);
             _not_full.condition_signal();
-            _mutex.unlock();
         }
     }
     void is_full() {
-
+    }
+    void stop() {
+        _running = false;
+        _mutex.lock();
+        _not_empty.condition_broadcast();
+        _mutex.unlock();
+        for (const auto& ite : _thread_items) {
+            pthread_join(ite->handle, nullptr);
+        }
+        for (const auto& ite : _thread_items) {
+            delete ite;
+        }
     }
 private:
     int _thread_size;
@@ -109,12 +131,13 @@ private:
     Condition _not_full;
     Condition _not_empty;
     bool _running;
+    std::vector<ThreadItem*> _thread_items;
 };
 
 void* run_in_thread(void* arg) {
         std::cout << "asdadstest hahh" << std::endl;
-    ThreadPool* thread_pool = static_cast<ThreadPool*>(arg);
-    thread_pool->run_thread(arg);
+    ThreadItem* item = static_cast<ThreadItem*>(arg);
+    item->thread_pool->run_thread(arg);
 }
 
 void* test_func(void* arg) {

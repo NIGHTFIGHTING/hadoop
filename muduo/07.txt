@@ -1,0 +1,152 @@
+1.
+(1)调用方发起本地调用
+(2)stub存根把你的参数打包称消息
+(3)rpc负责把消息网络发出去
+(4)被调用方rpc收到网络消息
+(5)server stub把消息解出来,变为函数参数
+(6)server调用本地函数
+2.rpc方式是构建分布式系统的基础
+IDL是Interface description language的缩写,接口描述语言
+根据接口描述语言生成stub
+3.rpc跨语言,因为不在一个进程或者线程里
+4.protobuf定义的函数,一个message,返回也只返回一个,避免函数重载,消息参数重载的打包顺序
+protobuf支持可扩展,extend加一个字段,不会破坏原有实现
+加一个参数基本麻烦了,client与server必须在同一版本才能使用
+如果是protobuf message,client与server端需要单独的加.版本间兼容很容易
+deprecated弃用
+
+74.
+负载均衡器的策略:
+(1)如果所有的server都是一样的,都是8核,round robin方式
+   如果server不一样,按照比例发请求.前提条件:负载均衡器知道服务器核数
+(2)书第9章,pending最少的发请求
+
+分布式系统动态求平均数,中位数
+
+77.
+RPC = message passing(数据传递,protobuf已经做了) + message dispatch(函数分发)
+GetDescriptor相当于reflaction,告诉service有哪些method,每个method有哪些参数,返回值是什么类型
+
+service interface接口
+1.class Service {
+    virtual const ::google::protobuf::ServiceDescriptor* GetDescriptor() = 0;
+    virtual void CallMethod(const ::google::protobuf::MethodDescriptor* method,                          
+            const ::google::protobuf::MessagePtr& request,                               
+            const ::google::protobuf::Message* response,                                 
+            const RpcDoneCallback& done) = 0; 
+};
+2.protobuf定义
+// service definition服务端声明
+service SudokuService {
+  rpc Solve (SudokuRequest) returns (SudokuResponse);
+}
+// generate service interface,使用protoc产生service接口
+class SudokuService : public ::muduo::net::Service {
+  typedef SudokuService_Stub Stub;
+  static const ::google::protobuf::ServiceDescriptor* descriptor();
+  virtual void Solve(const ::sudoku::SudokuRequestPtr& request,
+                       const ::sudoku::SudokuResponse* responsePrototype,
+                       const ::muduo::net::RpcDoneCallback& done);
+  // implements Service ----------------------------------------------
+  const ::google::protobuf::ServiceDescriptor* GetDescriptor();
+  void CallMethod(const ::google::protobuf::MethodDescriptor* method,
+                  const ::google::protobuf::MessagePtr& request,
+                  const ::google::protobuf::Message* responsePrototype,
+                  const ::muduo::net::RpcDoneCallback& done) {
+      GOOGLE_DCHECK_EQ(method->service(), SudokuService_descriptor_);
+      switch(method->index()) {
+          case 0:
+              Solve(::google::protobuf::down_pointer_cast< ::sudoku::SudokuRequest>(request),
+                      ::google::protobuf::down_cast<const ::sudoku::SudokuResponse*>(responsePrototype),
+                      done);
+              break;
+          default:
+              GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
+              break;
+      }
+};
+
+3.实现rpc server
+implement SudokuServer
+class SudokuServiceImpl : public SudokuService
+{
+ public:
+  virtual void Solve(const ::sudoku::SudokuRequestPtr& request,
+                     const ::sudoku::SudokuResponse* responsePrototype,
+                     const RpcDoneCallback& done)
+  {
+    LOG_INFO << "SudokuServiceImpl::Solve";
+    SudokuResponse response;
+    response.set_solved(true);
+    response.set_checkerboard("1234567");
+    done(&response);
+  }
+};
+
+4.反射得到类名对应的类
+void RpcServer::registerService(muduo::net::Service* service)
+{
+  const google::protobuf::ServiceDescriptor* desc = service->GetDescriptor();
+  // services["sudoku.SudokuService"] = SudokuServiceImpl; 
+  services_[desc->full_name()] = service;
+}
+5.server收到消息处理
+RpcServer pseudo code伪代码
+void RpcChannel::callServiceMethod(const RpcMessage& message)
+{
+  if (services_)
+  {
+    ServiceMap::const_iterator it = services_->find(message.service());
+    if (it != services_->end())
+    {
+      Service* service = it->second;
+      assert(service != NULL);
+      const google::protobuf::ServiceDescriptor* desc = service->GetDescriptor();
+      const google::protobuf::MethodDescriptor* method
+          = desc->FindMethodByName(message.method());
+      if (method)
+      {
+        // FIXME: can we move deserialization to other thread?
+        ::google::protobuf::MessagePtr request(service->GetRequestPrototype(method).New());
+        request->ParseFromString(message.request());
+        int64_t id = message.id();
+        const ::google::protobuf::Message* responsePrototype = &service->GetResponsePrototype(method);
+        /****************************************************/
+        service->CallMethod(method, request, responsePrototype,
+            std::bind(&RpcChannel::doneCallback, this, responsePrototype, _1, id));
+        /****************************************************/
+      }
+      else
+      {
+        // FIXME:
+      }
+    }
+    else
+    {
+      // FIXME:
+    }
+  }
+  else
+  {
+    // FIXME:
+  }
+}
+
+enum MessageType
+{
+    REQUEST = 1;
+    RESPONSE = 2;
+    ERROR = 3; // not used
+}
+message RpcMessage
+{
+    required MessageType type = 1;    // 消息类型 
+    required fixed64 id = 2;    // 
+
+    optional string service = 3;    // 访问service类型
+    optional string method = 4;    // 请求哪一个方法
+    optional bytes request = 5;
+
+    optional bytes response = 6;
+    optional ErrorCode error = 7;
+}

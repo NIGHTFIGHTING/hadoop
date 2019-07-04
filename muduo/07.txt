@@ -1,15 +1,18 @@
-1.
-(1)调用方发起本地调用
-(2)stub存根把你的参数打包称消息
-(3)rpc负责把消息网络发出去
-(4)被调用方rpc收到网络消息
-(5)server stub把消息解出来,变为函数参数
-(6)server调用本地函数
-2.rpc方式是构建分布式系统的基础
+71. RPC简介与接口定义
+(1)
+RPC是什么?Remote Procedure Call,远程过程调用
+举个例子:比如计算器
+[1]调用方发起本地调用
+[2]stub存根把你的参数打包称消息
+[3]rpc负责把消息网络发出去
+[4]被调用方rpc收到网络消息
+[5]server stub把消息解出来,变为函数参数
+[6]server调用本地函数
+[2]rpc方式是构建分布式系统的基础
 IDL是Interface description language的缩写,接口描述语言
 根据接口描述语言生成stub
-3.rpc跨语言,因为不在一个进程或者线程里
-4.protobuf定义的函数,一个message,返回也只返回一个,避免函数重载,消息参数重载的打包顺序
+(3)rpc跨语言,因为不在一个进程或者线程里
+(4)protobuf定义的函数,一个message,返回也只返回一个,避免函数重载,消息参数重载的打包顺序
 protobuf支持可扩展,extend加一个字段,不会破坏原有实现
 加一个参数基本麻烦了,client与server必须在同一版本才能使用
 如果是protobuf message,client与server端需要单独的加.版本间兼容很容易
@@ -92,6 +95,9 @@ void RpcServer::registerService(muduo::net::Service* service)
 }
 5.server收到消息处理
 RpcServer pseudo code伪代码
+RpcChannel::onRpcMessage(){
+    callServiceMethod();
+}
 void RpcChannel::callServiceMethod(const RpcMessage& message)
 {
   if (services_)
@@ -150,3 +156,91 @@ message RpcMessage
     optional bytes response = 6;
     optional ErrorCode error = 7;
 }
+
+78.RPC客户端实现
+每个连接id是递增,不用担心重复问题
+记录哪些是发出去没收到响应的,异步client rpc
+服务器端response不会那么快,执行完这条语句,被线程切换出去
+
+(1)generated client sutb
+class SudokuService_Stub : public SudokuService {
+ public:
+  SudokuService_Stub(::muduo::net::RpcChannel* channel);
+  ~SudokuService_Stub();
+
+  inline ::muduo::net::RpcChannel* channel() { return channel_; }
+
+  // implements SudokuService ------------------------------------------
+
+  using SudokuService::Solve;
+  virtual void Solve(const ::sudoku::SudokuRequest& request,
+                       const ::std::function<void(const ::sudoku::SudokuResponsePtr&)>& done) {
+      channel_->CallMethod(descriptor()->method(0),
+                           request, &::sudoku::SudokuResponse::default_instance(), done);
+
+  }
+ private:
+  ::muduo::net::RpcChannel* channel_;
+};
+
+(2)Sudoku Client
+RpcChannel channel;
+SudokuService::Stub stub(&channel);
+SudokuRequest request; SudokuResponse response;
+stub.Solve(NULL, &request, response, [](){});
+
+(3)RpcChannel members
+calss RpcChannel : public ::google::protobuf::RpcChannel {
+public:
+    void CallMethod(...) override; // inherited from RpcChannel
+private:
+    struct OutstandingCall {
+        ::google::protobuf::Message* response;
+        ::google::protobuf::Closure* done;
+        // typedef ::std::function<void(const ::google::protobuf::MessagePtr&)> ClientDoneCallback;
+    }
+    RpcCodec codec_;
+    TcpConnectionPtr conn_;
+    AtomicInt64 id_;
+    std::map<int64_t, OutstandingCall> outstandings_;
+}
+(4)RpcChannel::CallMethod
+void RpcChannel::CallMethod(const ::google::protobuf::MethodDescriptor* method,
+                            const ::google::protobuf::Message& request,
+                            const ::google::protobuf::Message* response,
+                            const ClientDoneCallback& done)
+{
+    RpcMessage message;
+    message.set_type(REQUEST);
+    int64_t id = id_.incrementAndGet();
+    message.set_id(id);
+    message.set_service(method->service()->full_name());
+    message.set_method(method->name());
+    message.set_request(request.SerializeAsString()); // FIXME: error check
+  
+    OutstandingCall out = { response, done };    // we own response
+    {
+        MutexLockGuard lock(mutex_);
+        outstandings_[id] = out;
+    }
+    codec_.send(conn_, message);
+}
+(5)RpcChannel::onRpcMessage
+void RpcChannel::onRpcMessage(const TcpConnectionPtr& conn) {
+    assert(message.type() == RESPONSE);
+
+    // omit all error handling
+    auto it = outstandings_.find(message.id());
+    Outstandingout = it->second;
+    outstandings_.erase(it);
+
+     out.response->ParseFromString(message.response());
+     out.done->Run();
+     //out.done(response);
+     delete out.response;
+}
+
+79.
+求100个高频词,从输入文件
+(1)输入文件内存太大
+(2)输入文件在多态机器上

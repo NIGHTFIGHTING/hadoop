@@ -8,7 +8,7 @@ RPC是什么?Remote Procedure Call,远程过程调用
 [4]被调用方rpc收到网络消息
 [5]server stub把消息解出来,变为函数参数
 [6]server调用本地函数
-[2]rpc方式是构建分布式系统的基础
+[7]rpc方式是构建分布式系统的基础
 IDL是Interface description language的缩写,接口描述语言
 根据接口描述语言生成stub
 (3)rpc跨语言,因为不在一个进程或者线程里
@@ -242,5 +242,37 @@ void RpcChannel::onRpcMessage(const TcpConnectionPtr& conn) {
 
 79.
 求100个高频词,从输入文件
-(1)输入文件内存太大
-(2)输入文件在多态机器上
+(1)可以放入内存 recipes/topk/word_freq.cc
+sort input | uniq -c | sort -nr | head -100
+(2)输入文件内存太大,该文件在一台机器 recipes/topk/word_freq_shards.cc 和 recipes/puzzle/query_freq.cc一样
+    http://www.cnblogs.com/baiyanhuang/archive/2012/11/11/2764914.html
+    有10个文件，每个文件1G，每个文件的每行存放的都是用户的query（请自己随机产生），每个文件的query都可能重复。要求你按照query的频度排序。
+【解法】
+基本步骤就是不断读入文件，并做初步统计，到了某个内存的极限时写出文件，写的方式是按query的哈希值分配到10个不同的文件中，直到读完所有文件内容，然后把这10个文件中的query按count排序，并10路归并排序出最后结果。
+[1]shuffle
+从命令行传入输入文件，逐行读入，并存放在一个hashmap中，边读边统计<query, count>，到map的size到达指定size时（10*1000*1000， 主要是考虑内存容量），把这个hashmap的内容先写出去，写到10个文件的第hash(query) % 10个中去，这保证了相同的query肯定在同一个文件中。 这样，直到把文件读完。所以如果输入文件总大小为10G的话，每个文件大小为 <1G （因为相同的query并合并了），可以进行单文件内存内处理。注意此时虽然相同的query在同一文件中，他们可能是分布在好几个地方的
+[2]reduce
+把每个文件中相同query合并，并将query按count排序。
+[3]merge
+10个有序的文件，通过归并排序得到最后的结果。归并的方式是通过一个10个元素的堆，相比于两两迭代归并排序，这大大减少了读文件的时间。
+merge时间复杂度O(N*logM)
+N文件的行数,M为10(10个元素的堆)
+muduo网络库书:12.8.3节
+
+(3)输入文件在多台机器上
+https://www.cnblogs.com/Solstice/archive/2013/01/13/2858173.html
+------------------------------------------------------------------------
+1G=1024M
+1M=1024K
+1K=1024B
+1B=8b
+10亿B=约为1G
+1000 000 000B 约等于= 1G
+1G的文件hash为1000个小文件,每个文件约为1M
+2^32约等于=40亿
+2^10B=1024B=1k
+海量数据处理:https://blog.csdn.net/v_july_v/article/category/1106578
+
+问题:统计全国统计出现频率最高的名字
+[1]把全国所有人名字放入一个问题
+[2]分区域来做,每个省名字出现次数,merge按照姓拆分表,姓张姓王.相同姓排序,

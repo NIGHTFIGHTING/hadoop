@@ -60,7 +60,6 @@ private:
     Mutex _mutex;
     pthread_cond_t _cond;
 };
-void* run_in_thread(void* arg);
 class ThreadPool;
 struct ThreadItem {
     pthread_t handle;
@@ -123,6 +122,11 @@ public:
             delete ite;
         }
     }
+    static void* run_in_thread(void* arg) {
+        std::cout << "asdadstest hahh" << std::endl;
+    ThreadItem* item = static_cast<ThreadItem*>(arg);
+    item->thread_pool->run_thread(arg);
+    }
 private:
     int _thread_size;
     int _max_deque_size;
@@ -133,12 +137,6 @@ private:
     bool _running;
     std::vector<ThreadItem*> _thread_items;
 };
-
-void* run_in_thread(void* arg) {
-        std::cout << "asdadstest hahh" << std::endl;
-    ThreadItem* item = static_cast<ThreadItem*>(arg);
-    item->thread_pool->run_thread(arg);
-}
 
 void* test_func(void* arg) {
 

@@ -1,5 +1,6 @@
 1.STL内存池,nginx内存池
 2.http,https协议
+验证身份,达成安全套件共识,传递密钥,加密通讯
 ---------------------------------------------------------
 CA 证书的作用，是保证服务器的公钥的来历。其做法是对公钥进行哈希摘要算法，然后用 CA 私钥加密，伴随公钥一起发送出去。
 客户端收到后，用 CA 公钥解密，然后对公钥做哈希，比对哈希值是否一致来做到的。
@@ -11,6 +12,17 @@ https 通信分为四个步骤：
 此时，客户端有第一步自己生成的随机数，第二步收到服务端的随机数，第三步的 pre-master-key，服务端也是如此，他们就可以用这三个随机数使用约定的算法生成同一个密钥来加密以后的通信数据
 
 3.rpc的实现,protobuf反射,网络框架的接口
+基于rpc的encode,decode
+len,protobufData,checkSum,
+encode
+(1)protoBufData通过crc32算法计算checkSum.然后追加到buf
+(2)算出buf的长度,包括protobufData,checkSum的长度
+decode
+(1)sizeof int32_t,找到包体长度len
+(2)截取len长度的buf,buf的末尾sizeof int32_t是checkSum,得到checkSum,校验protobufData
+(3)然后截取protobufData
+基于protobuf传输,需要将message的类型名传递过去,len,typeLen,typeName,protobufData,checkSum
+
 4.反射reflection创建protobuf
 5.线程池
 6.nginx有哪些优点?为什么nginx高性能?nginx热加载实现,nginx的启动流程,父子进程间通讯,nginx的连接池,如何处理过期事件
@@ -29,7 +41,7 @@ https 通信分为四个步骤：
 13.介绍一下reactor模式
 
 
-最好的理解方式:举例子,使用生活中的例子
+最好的理解方式:举例子,使用生活中的例子,列出1,2,3点
 
 简历:
 建议你的重心关注如下几点：

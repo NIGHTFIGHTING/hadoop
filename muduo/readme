@@ -12,20 +12,21 @@ https 通信分为四个步骤：
 此时，客户端有第一步自己生成的随机数，第二步收到服务端的随机数，第三步的 pre-master-key，服务端也是如此，他们就可以用这三个随机数使用约定的算法生成同一个密钥来加密以后的通信数据
 
 3.rpc的实现,protobuf反射,网络框架的接口
-基于rpc的encode,decode
+[1]基于rpc的encode,decode
 len,protobufData,checkSum,
 encode
-(1)protoBufData通过crc32算法计算checkSum.然后追加到buf
-(2)算出buf的长度,包括protobufData,checkSum的长度
+[1]protoBufData通过crc32算法计算checkSum.然后追加到buf
+[2]算出buf的长度,包括protobufData,checkSum的长度
 decode
-(1)sizeof int32_t,找到包体长度len
-(2)截取len长度的buf,buf的末尾sizeof int32_t是checkSum,得到checkSum,校验protobufData
-(3)然后截取protobufData
-基于protobuf传输,需要将message的类型名传递过去,len,typeLen,typeName,protobufData,checkSum
+[1]sizeof int32_t,找到包体长度len
+[2]截取len长度的buf,buf的末尾sizeof int32_t是checkSum,得到checkSum,校验protobufData
+[3]然后截取protobufData
+(2)基于protobuf传输,需要将message的类型名传递过去,len,typeLen,typeName,protobufData,checkSum
 
 4.反射reflection创建protobuf
 5.线程池
 6.nginx有哪些优点?为什么nginx高性能?nginx热加载实现,nginx的启动流程,父子进程间通讯,nginx的连接池,如何处理过期事件
+双buffer的reload方法
 7.算法题目,不要直接说出解决办法,对好需求
   这个题目一定有这个数值么?
 8.tcp粘包,缺包:1.协议包头2.通过换行分隔(http协议,ftp协议)
@@ -54,5 +55,5 @@ decode
 7.能力很重要，把能力表述出来更重要
 8.稳定，连续的工作经历也很关键
 
-项目面试:
+项目面试:从整体业务价值向下讲
 1.UTF8编码与GB18030编码区别

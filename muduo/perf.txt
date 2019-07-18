@@ -1,0 +1,25 @@
+(1)平均负载是指单位时间内，系统处于可运行状态和不可中断状态的平均进程数，也就是平均活跃进程数(它和CPU使用率并没有直接关系),它不仅包括了正在使用 CPU 的进程，还包括等待 CPU 和等待 I/O 的进程。
+(2)可运行状态的进程，是指正在使用CPU或者正在等待CPU的进程，ps命令:处于R状态（Running 或 Runnable）的进程
+(3)不可中断状态的进程则是正处于内核态关键流程中的进程，并且这些流程是不可打断的，比如最常见的是等待硬件设备的I/O响应，也就是我们在ps命令中看到的D状态（Uninterruptible Sleep，也称为Disk Sleep）的进程
+(4)查看系统cpu核数:grep 'model name' /proc/cpuinfo | wc -l
+(5)当平均负载高于 CPU 数量70%的时候，你就应该分析排查负载高的问题了。一旦负载过高，就可能导致进程响应变慢，进而影响服务的正常功能。把系统的平均负载监控起来，然后根据更多的历史数据，判断负载的变化趋势
+(6)mpstat 是一个常用的多核 CPU 性能分析工具，用来实时查看每个 CPU 的性能指标，以及所有CPU的平均指标
+mpstat -P ALL 2 10
+(7)pidstat 是一个常用的进程性能分析工具，用来实时查看进程的 CPU、内存、I/O 以及上下文切换等性能指标。
+pidstate -u 5 2,-u 显示cpu利用率
+pidstate -d 5 2,-d 显示进程的io情况
+(8)
+watch -d uptime: -d会高亮显示变化的区域
+stress: 压测命令，--cpu cpu压测选项，-i io压测选项，-c 进程数压测选项，--timeout 执行时间
+(9)
+[1]CPU密集型进程case：
+stress --cpu 1 --timeout 600
+mpstat -P ALL 5: -P ALL表示监控所有CPU，5表示每5秒刷新一次数据，观察是否有某个cpu的%usr会很高，但iowait应很低
+pidstat -u 5 1：每5秒输出一组数据，观察哪个进程%cpu很高，但是%wait很低，极有可能就是这个进程导致cpu飚高
+[2]IO密集型进程case：
+stress -i 1 --timeout 600
+mpstat -P ALL 5: 观察是否有某个cpu的%iowait很高，同时%usr也较高
+pidstat -u 5 1：观察哪个进程%wait较高，同时%CPU也较高
+[3]大量进程case：
+stress -c 8 --timeout 600
+pidstat -u 5 1：观察那些%wait较高的进程是否有很多,每个进程等待CPU的时间（也就是代码块中的 %wait 列 

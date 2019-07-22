@@ -1,0 +1,37 @@
+1.vector的扩容
+(1)每次扩容是原来capacity的2倍,申请内容,将原内容copy到新内存.这些操作会影响到程序运行的效率，所以reserve()操作（提前分配一定量的内存）来避免不必要的重新分配是很有必要的
+(2)每次扩容都有元素的大量拷贝工作,元素的拷贝会影响copy construct,原来的空间也要destory contruct,每次调用都会造成拷贝构造函数,析构函数
+template <class T, class Alloc = alloc>
+class vector {
+public:
+    typdef T value_type;
+    typedef valye_type* iterator;
+protected:
+    iterator start;
+    iterator finish;
+    iterator end_of_storage;
+};
+--------------------------------------------------
+2.resize和reverse的区别
+首先，两个函数的功能是有区别的：
+(1)reserve是容器预留空间，但并不真正创建元素对象，在创建对象之前，不能引用容器内的元素，因此当加入新的元素时，需要用push_back()/insert()函数。
+(2)resize是改变容器的大小，并且创建对象，因此，调用这个函数之后，就可以引用容器内的对象了，因此当加入新的元素时，用operator[]操作符，或者用迭代器来引用元素对象。
+其次，两个函数的形式是有区别的：
+(3)reserve函数之后一个参数，即需要预留的容器的空间；
+resize函数可以有两个参数，第一个参数是容器新的大小，第二个参数是要加入容器中的新元素，如果这个参数被省略，那么就调用元素对象的默认构造函数。
+vector<int> myVec;
+myVec.reserve( 100 );     // 新元素还没有构造,
+// 此时不能用[]访问元素
+for (int i = 0; i < 100; i++ ) {
+    myVec.push_back( i ); //新元素这时才构造
+}
+myVec.resize( 102 );      // 用元素的默认构造函数构造了两个新的元素
+myVec[100] = 1;           //直接操作新元素
+
+3.iterator:
+-------------------------------------------------------
+vector是一个连续空间
+list的迭代器需要设计成一个类,因为链表的节点都是分离的
+
+4.gcc4.9版本sizeof(vector<T>)大小
+面向对象概念:public继承代表is-a,是一种的关系

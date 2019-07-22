@@ -1,0 +1,58 @@
+1.liste环状双向链表,刻意在环状list微端加一空白节点,用以符合STL[前闭后开]区间
+sizeof(list<T>)
+G2.9 4
+G4 8
+
+G2.9
+template<class T>
+struct __list_node {
+    typedef void* void_pointer;
+    void_pointer prev;
+    void_pointer next;    // 使用void_pointer不是很好
+    T data;
+};
+
+template <class T, class Alloc = alloc>
+class list {
+protected:
+    typedef __list_node<T> list_node;
+public:
+    typedef list_node* link_type;
+    typedef __list_iterator<T, T&, T*> iterator;
+protected:
+    link_type node;
+};
+
+2.list的iterator是一个智能指针,smart pointer,因为list的节点是不连续的,普通指针++不能将移动到下一个位置节点
+因此需要定义一个struct __list_iterator类,重载operator++()/operator++(int),
+
+template <class T, class Ref, class Ptr> 
+struct __list_iterator {
+    typedef __list_iterator<T, Ref, Ptr> self;
+    typedef bidirectional_iterator_tag iterator_category;
+    typedef T value_type;
+    typedef Ptr pointer;
+    typedef Ref reference;
+    typedef __list_node<T>* link_type;
+    typedef ptrdiff_t difference_type;
+    link_type node;
+}
+
+// postfix form, i++;
+self operator++(int) {
+    self tmp = *this;    // 记录原值,唤醒拷贝构造copy ctor -> __list_iterator(const iterator& x):node(x.node) {}
+    ++*this;    // 进行操作
+    return tmp;    // 返回原值,return by valye,
+                   //唤醒拷贝构造copy ctor -> __list_iterator(const iterator& x):node(x.node) {}
+}
+
+// prefix, ++i
+self& operator++() {
+    node = (link_type)((*node).next);
+    return *this;    //return by reference,并不会唤起什么
+}
+
+list<int> c;
+auto ite = c.begin();
+++++ite -> ++(++)ite;
+ite++++; -> (ite++)++;X不对的

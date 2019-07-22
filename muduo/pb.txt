@@ -1,0 +1,100 @@
+protobuf是什么
+protobuf定义了可扩展的二进制消息格式,特别适合网络数据传输
+1.解决的问题:协议字段校验
+(1)协议检验需要模板模板(2)开发中需要使用这些字段
+(3)protobuf本身提供序列化,反序列化,bot协议json格式,需要自定义序列化,反序列化,.protobuf提供格式化打印
+(4)协议的事件,指令需要extensions的方式
+比如.speak指令和Nop静默指令
+pb是用proto2版本,json库使用rapidjson库
+{
+    "header": {
+        "namespace": "ai.dueros.device_interface.voice_output",
+            "name": "Speak",
+            "messageId": "{{STRING}}",
+            "dialogRequestId": "{{STRING}}"
+    },
+    "payload": {
+        "speech": {{SpeechStruct}}
+    }
+}
+{
+    "header": {
+        "namespace": "ai.dueros.device_interface.system",
+            "name": "Nop",
+            "messageId": "{{STRING}}"
+    },
+    "payload": {
+        "message": "{{STRING}}"
+    }
+}
+pb->json,json->pb
+message->GetDescriptor()
+message->GetReflection()
+descriptor->extension_range_count()
+    descriptor->extension_range(i)
+        reflection->FindKnownExtensionByNumber(tag_number);
+descriptor->field_count();
+    fields.push_back(descriptor->field(i)); 
+field->is_repeated()
+    reflection->Add##method
+reflection->Set##method
+message类型
+reflection->AddMessage
+reflection->MutableMessage
+2.proto2不支持map结构,
+message MapEntry {
+    required string key = 0;    // key的类型必须为string,且下标必须为0
+    required Value value = 1;    // value的类型可以是任意的,且下表必须为1
+}
+{ "my_map": {"key1": value1, "key2": value2 } }
+instead of:
+{ "my_map": [{"key": "key1", "value": value1},
+             {"key": "key2", "value": value2}] }
+
+{
+    "name": {
+        "value1": "value1",
+        "value2": "value2"
+    }
+}
+3.Struct
+可以存储任意json的结构,且校验.proto2不支持map结构
+使用 union 存储 variant
+typedef struct {
+    union {
+        struct { char* s; size_t len; }s;  /* string */
+        double n;                          /* number */
+    }u;
+    lept_type type;
+}lept_value;
+
+
+4.权限控制
+背景
+nlu解析,预测预取权限开发者不好理解的功能,百度账号的一些信息
+如果字段单个判断是否存在权限,代码会很冗余.代码结构不清晰
+基本功能：目前定义开放给第三方bot的功能集合；（以basic指代）
+扩展功能：请求-determined，非audio-player事件，响应-expectSpeech, needDetermine，非audio-player指令（以functional_private指代）
+基本信息：端状态，端能力描述，加密后的userId，设备Id（以basic指代）
+端设备信息：设备定位信息，设备原始id（以device_private指代）
+百度帐号信息：passport id，bduss（以baidu_private指代）
+实现:
+syntax = "proto2";
+import "google/protobuf/descriptor.proto";
+extend google.protobuf.FieldOptions {
+    optional bool internal = 50001 [ default = false ];
+    optional bool basic = 50002 [ default = false ];
+    optional bool function_private = 50003 [ default = false ];
+    optional bool device_private = 50004 [ default = false ];
+    optional bool baidu_private = 50005 [ default = false ];
+    optional bool user_customize = 50006 [ default = false ];
+}
+optional int32 score = 4 [ (function_private) = true ]
+field->options().GetExtension(basic)
+6,性能问题
+Google文档说Description是线程安全的
+FindKnownExtensionByNumber
+7.单元测试框架
+生产者,消费者模型
+
+1.调研内部编码,接口编码,session编码

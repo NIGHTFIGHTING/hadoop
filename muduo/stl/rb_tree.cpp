@@ -1,5 +1,4 @@
 #include <set>
-#include <functional>
 #include <iostream>
 using namespace std;
 

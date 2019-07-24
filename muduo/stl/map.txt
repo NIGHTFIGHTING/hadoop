@@ -1,0 +1,43 @@
+1.map/multimap以rb_tree为底层结构,因此有元素自动排序特性,排序的依据是key.
+2.map/multimap提供"遍历"操作及iterators,按正常规则(++ite)遍历,便能获得排序状态(sorted)
+3.我们无法使用map/multimap的iterators改变元素的key(因为key有其严谨的排列规则),但可以用它改变元素的data,
+因此,map/multimap内部自动将user指定的key type设为const,如此禁止user对元素的key赋值
+map不允许迭代器来改key
+4.map元素的key必须独一无二,因此其insert()用的是rb_tree的insert_unique
+multimap元素的key可以重复,因此其insert()用的是rb_tree的insert_equal
+5.template <class _Key, class _Tp, class _Compare, class _Alloc>
+class map {
+    public:
+        // typedefs:
+        typedef _Key                  key_type;
+        typedef _Tp                   data_type;
+        typedef _Tp                   mapped_type;
+        typedef pair<const _Key, _Tp> value_type;
+        // key|data,key和data合成value
+        // map/multimap内部自动将user指定的key type设为const,如此禁止user对元素的key赋值
+        typedef _Compare              key_compare;
+    private:
+        typedef _Rb_tree<key_type, value_type, 
+                _Select1st<value_type>, key_compare, _Alloc> _Rep_type;
+        _Rep_type _M_t;  // red-black tree representing map
+    public:
+        typedef typename _Rep_type::iterator iterator;
+};
+
+map<int, string> imap -> map<int, string, less<int>, alloc> imap ->
+template<int, pair<const int, string>, select1st<pair<const int, string>>, less<int>, alloc> class rb_tree;
+6.
+返回与下标中指定的键关联的数据
+如果key不存在，则使用默认值创建具有key的对，然后返回该值
+_Tp& operator[](const key_type& __k) {
+    iterator __i = lower_bound(__k);
+    // __i->first is greater than or equivalent to __k.
+    if (__i == end() || key_comp()(__k, (*__i).first))
+        __i = insert(__i, value_type(__k, _Tp()));
+    return (*__i).second;
+}
+
+lower_bound是二分搜寻的一种版本,试图在sorted[first, last)中寻找元素value
+若[first, last)拥有value相等的元素(s),便返回一个iterator指向其中第一个元素
+如果没有这样的元素存在,便返回假设该元素存在时应该出现的位置
+lower_bound返回的是 不破坏排序得以安插value的第一个适当位置

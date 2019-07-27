@@ -1,7 +1,0 @@
-construction, millo-seconds:2340000
-size()= 3000000
-8MyString--
-CCtor=0 MCtor=7194303 CAsgn=0 MAsgn=0 Dtor=7194303 Ctor=3000000 DCtor=0
-copy, millo-seconds:650000
-nocopy, millo-seconds:0
-swap, millo-seconds:0

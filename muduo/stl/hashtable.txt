@@ -1,0 +1,124 @@
+
+1.hashtable空间不足够,存在元素碰撞
+(1)存在碰撞,使用另一个hash找到位置
+(2)如果发生碰撞,用一个链表串在一起.list是线性搜寻,太长查找会很慢,separate chaining
+链表太长,需要打散,虽然list是线性搜寻时间,如果list够小,搜寻速度仍然很快
+
+hashtable的节点定义:
+template <class _Val>
+struct _Hashtable_node
+{
+    _Hashtable_node* _M_next;
+    _Val _M_val;
+};  
+
+hashtable迭代器的定义:
+template <class _Val, class _Key, class _HashFcn,
+        class _ExtractKey, class _EqualKey, class _Alloc>
+struct _Hashtable_iterator {
+    typedef _Hashtable_node<_Val> _Node;
+    // hashtable当前的节点
+    _Node* _M_cur;
+    // hashtable
+    _Hashtable* _M_ht;
+};
+
+//_Val:value的类型,节点的实值型别,
+//Key:节点的键值型别, 
+//_HashFcn:hashfunction的函数型别, hash function object
+//_ExtractKey:从节点中取出键值的方法
+//_EqualKey:判断键值相同与否的方法,判断两个key是否相等
+template <class _Val, class _Key, class _HashFcn,
+         class _ExtractKey, class _EqualKey, class _Alloc>
+ class hashtable {
+ public:
+     typedef _Key key_type;
+     typedef _Val value_type;
+     typedef _HashFcn hasher;
+     typedef _EqualKey key_equal;
+
+     typedef size_t            size_type;
+     typedef ptrdiff_t         difference_type;
+     typedef value_type*       pointer;
+     typedef const value_type* const_pointer;
+     typedef value_type&       reference;
+     typedef const value_type& const_reference;
+ private:
+     typedef _Hashtable_node<_Val> _Node;
+
+     hasher                _M_hash;
+     key_equal             _M_equals;
+     _ExtractKey           _M_get_key;
+     vector<_Node*,_Alloc> _M_buckets;
+     size_type             _M_num_elements;
+
+ public:
+     // 迭代器
+     typedef _Hashtable_iterator<_Val,_Key,_HashFcn,_ExtractKey,_EqualKey,_Alloc>
+         iterator;
+};
+
+// 遍历hashtable中的节点
+template <class _Val, class _Key, class _HF, class _ExK, class _EqK, 
+        class _All>
+_Hashtable_iterator<_Val,_Key,_HF,_ExK,_EqK,_All>&
+        _Hashtable_iterator<_Val,_Key,_HF,_ExK,_EqK,_All>::operator++()
+{
+    const _Node* __old = _M_cur;
+    // 获取链表的下一个节点
+    _M_cur = _M_cur->_M_next;
+    // 节点为空
+    if (!_M_cur) {
+        // 结算当前节点在第几个bucket中
+        size_type __bucket = _M_ht->_M_bkt_num(__old->_M_val);
+        // 找到存在数值的下一个节点
+        while (!_M_cur && ++__bucket < _M_ht->_M_buckets.size())
+            _M_cur = _M_ht->_M_buckets[__bucket];
+    }
+    return *this;
+}
+
+// modulus运算
+size_type _M_bkt_num(const value_type& __obj) const
+{
+    return _M_bkt_num_key(_M_get_key(__obj));
+}
+
+size_type _M_bkt_num_key(const key_type& __key) const
+{
+    return _M_bkt_num_key(__key, _M_buckets.size());
+}
+
+size_type _M_bkt_num_key(const key_type& __key, size_t __n) const
+{
+    // 这个hash是class hashtable中的hasher _M_hash
+    return _M_hash(__key) % __n;
+}
+
+size_type _M_bkt_num(const value_type& __obj, size_t __n) const
+{
+    return _M_bkt_num_key(_M_get_key(__obj), __n);
+}
+
+2.
+什么时候认为需要rehash,链表过长?
+当你的元素个数比篮子bucket数量还要多,需要把篮子bucket增加两倍
+hashtable需要一个hash function
+
+3.
+4.hash-function,hash-code
+泛化
+template <class Key>
+struct hash {
+};
+特化
+template <>
+struct hash<int> {
+    size_t operator() (int x) const {
+        return x;
+    }
+}
+hash<Foo>();
+int i = hash<int>()(32);
+hash function的目的,就是希望根据元素值算出一个hash code(一个可进行modules运算的值),使得元素经hash code
+映射之后能够乱，够随机地置于hashtable内,越是乱,越不容易发生碰撞

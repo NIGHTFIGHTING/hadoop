@@ -50,6 +50,8 @@ bool AA(int a,int b)
   return !((a+b)%2);
 }
 
+//空间复杂度log(N)
+
 
 int Sort(int* arr,int low,int high,PFUN pfun)   //  ½«  ´Ólow µ½ high  ÅÅÐò
 {

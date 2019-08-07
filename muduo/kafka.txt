@@ -1,0 +1,4 @@
+1.kafka作为flume消费者,对数据做缓存,kafka是一个消息队列,有存储功能,
+相当于把flume数据堆积过来,flume日志收集,kafka做缓存处理
+
+

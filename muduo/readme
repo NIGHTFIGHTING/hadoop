@@ -42,6 +42,25 @@ inline google::protobuf::Message* createMessage(const std::string& type_name)
 4.反射reflection创建protobuf
 5.线程池
 6.nginx有哪些优点?为什么nginx高性能?nginx热加载实现,nginx的启动流程,父子进程间通讯,nginx的连接池,如何处理过期事件
+nginx reload过程，master进程收到reload信号，则重新加载配置文件，同时创建新的worker
+进程，然后发送quit信号到原来的worker子进程，源worker子进程就会拒绝bind
+接受客户端连接,全部由新的worker进程来接收连接。
+
+(1)向master进程发送HUP信号(reload 命令),master进程中的ngx_reconfigure设置1
+(2)master进程校验配置语法是否正确
+(3)master进程打开新的监听端口(子进程会继承父进程打开的所有端口)
+(4)master进程用新配置启动新的worker子进程,ngx_start_worker_processes(NGX_PROCESS_JUST_RESPAWN)新的子进程,ngx_spawn_process函数中将判断NGX_PROCESS_JUST_RESPAWN,将ngx_processes数组respawn和just_spawn都是1
+(5)master进程向老worker子进程发送QUIT信号,ngx_signal_worker_processes,子进程ngx_quit设置为1
+如何判断向哪些老worker子进程发送信号呢?ngx_process数据中just_spawn标记不是1的
+(6)老worker进程关闭监听句柄(标志新的连接只会到新的worker),设置ngx_exiting为1,处理完当前连接结束进程,定时器超时则退出worker;
+ngx_exiting为1，则开始准备关闭worker进程
+(1)根据当前ngx_cycle_t中所有正在处理的连接，调用它们对应的关闭连接处理方法
+就是将连接中的close标志位置为1，再调用读事件的处理方法
+(2)检查ngx_event_timer_rbtree红黑树不为空,调用ngx_process_events_and_timers方法处理事件
+如果为空，表示已经处理完所有的事件，这时将调用所有模块的exit_process方法，最后销毁内存池，退出整个worker进程
+
+ngx_reap_children
+
 nginx的accept_mutext锁
 nginx定时器
 :创建一个最小堆multimap<time, conn>,key是需要下次判断conn中ping的心跳包的时间
@@ -61,7 +80,7 @@ AddToTimerQueue
 10.你为什么离开上一家公司?
 11.空间复杂度,时间复杂度
    堆(时间推),优先队列
-   二叉排序树,平衡二叉树
+   二叉排序树,平衡二叉树,红黑树
    字典Trie树
    海量数据处理
 12.pipeline模式

@@ -56,8 +56,14 @@ RTTI（Run-Time Type Identification)，通过运行时类型信息，程序能�
 
 
 10、平常用什么容器？说说常用的容器。vector的底层实现、扩容原理、size、capacity、resize、reserve四个函数
+https://blog.csdn.net/INGNIGHT/article/details/99777147
+
+
 11、map底层实现、unordered_map底层实现？哪个写（插入、删除）快？
 各个容器迭代器失效的情况。
+https://blog.csdn.net/INGNIGHT/article/details/99780501
+
+
 12、程序运行出错，抛出异常，怎么调试？用过什么调试工具？gdb调试？（程序运行出错，会生成一个什么call(音译)文件？？？
 面试官说的什么call(音译)文件是什么？）
 13、知道什么智能指针？说说shared_ptr实现原理、线程安全不？

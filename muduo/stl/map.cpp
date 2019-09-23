@@ -1,12 +1,20 @@
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <cstdlib> //abort()
+#include <cstdlib> //abort() and rand() and RAND_MAX
 #include <cstdio>  //snprintf()
 #include <iostream>
 #include <ctime> 
+using namespace std;
 namespace jj14
 {
+    long get_a_target_long()
+    {
+        long target=0;
+        cout << "target (0~" << RAND_MAX << "): ";
+        cin >> target;
+        return target;
+    }
     void test_map(long& value)
     {
         cout << "\ntest_map().......... \n";
@@ -41,4 +49,11 @@ namespace jj14
 
         c.clear();                  
     }                                                            
+}
+
+int main() {
+    long value;
+    cout << "how many elements: ";
+    cin >> value;       
+    jj14::test_map(value);
 }

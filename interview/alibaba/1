@@ -62,11 +62,17 @@ https://blog.csdn.net/INGNIGHT/article/details/99777147
 11、map底层实现、unordered_map底层实现？哪个写（插入、删除）快？
 各个容器迭代器失效的情况。
 https://blog.csdn.net/INGNIGHT/article/details/99780501
+https://blog.csdn.net/INGNIGHT/article/details/99832856
 
 
 12、程序运行出错，抛出异常，怎么调试？用过什么调试工具？gdb调试？（程序运行出错，会生成一个什么call(音译)文件？？？
 面试官说的什么call(音译)文件是什么？）
 13、知道什么智能指针？说说shared_ptr实现原理、线程安全不？
+1.智能指针是利用RAII（Resource Acquistion Is Initialization：资源获取即初始化）来管理资源
+2.智能指针本质思想：
+（1）将堆对象的生存期用栈对象（智能指针）来管理，当new一个堆对象的时候，立刻用智能指针来接管，具体做法是在构造函数进行初始化（用一个指针指向堆对象），在析构 函数中调用delete来释放堆对象；（2）由于智能指针本身是一个栈对象，它的作用域结束的时候，自动调用析构函数，从而调用delete释放了堆对象。
+
+
 14、说说你理解的进程、线程？进程的内存分布？孤儿进程？
 15、怎么理解物理内存、逻辑内存？如果中国每个人都有e-mail，把所有人e-mail都存到内存中，存得下吗？（13亿人，每人20字节，估算共多少内存）
 16、多线程

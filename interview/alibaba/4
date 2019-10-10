@@ -3,8 +3,9 @@
 2，c++反射如何实现
 2，异步请求有什么好处
 3.nginx为什么高性能
-4.快排，归并排序，优缺点
-5.广告系统设计考虑的问题
+4.负载均衡了解么
+5.快排，归并排序，优缺点
+6.广告系统设计考虑的问题
 
 2面：问了项目
 二叉树：https://leetcode-cn.com/problems/count-complete-tree-nodes/solution/wan-quan-er-cha-shu-by-powcai/
